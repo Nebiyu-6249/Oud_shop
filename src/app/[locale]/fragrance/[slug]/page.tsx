@@ -101,7 +101,7 @@ export default async function FragrancePage({ params }: PageProps<"/[locale]/fra
             <h2 id="variants-heading" className="font-display text-2xl text-realm-accent">
               {t("variants")}
             </h2>
-            <Suspense fallback={<VariantList variants={f.variants} locale={locale} stock={null} />}>
+            <Suspense fallback={<VariantList variants={f.variants} locale={locale} />}>
               <VariantStock fragranceId={f.id} variants={f.variants} locale={locale} />
             </Suspense>
             <p className="mt-3 text-sm text-realm-ink/65">{t("vatIncluded")}</p>

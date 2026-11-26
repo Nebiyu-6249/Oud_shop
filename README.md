@@ -18,7 +18,7 @@ npm run dev
 | --- | --- |
 | `npm run build` | content check, Prisma client, Next build |
 | `npm run build:netlify` | as above, plus `migrate deploy` and seed against the production database |
-| `npm test` | Vitest unit tests |
+| `npm test` | Vitest unit tests, plus order and webhook tests against the local database when `DATABASE_URL` is set |
 | `npm run check:content` | fails on emoji or blocklisted terms in `src/`, `prisma/` and `messages/` |
 
 ## Netlify
@@ -30,6 +30,20 @@ Catalogue pages are prerendered from the database at build time. Stock on the fr
 ## The astrolabe
 
 `/[locale]/finder` sets three rings: family (the rete), when (the middle ring) and intensity (the plate). Scoring lives in `src/lib/finder.ts` as a pure, tested function. The instrument is described once in `src/components/astrolabe/geometry.ts` and drawn twice: as SVG (first paint, and the fallback without WebGL) and as an extruded brass scene in React Three Fiber whose engravings are painted procedurally onto canvas textures. Rings turn by drag, touch, or the keyboard sliders beside it. With reduced motion the rings and rule jump straight to their detents and the home-page instrument stays still.
+
+## Checkout
+
+The cart lives in `localStorage` and holds only variant ids and quantities. `POST /api/checkout` reprices every line from the database, checks stock (short lines come back as per-line errors), creates a PENDING order and a Stripe Checkout session in AED, and returns its URL. Prices are VAT-inclusive; VAT is `round(total * 5 / 105)` fils.
+
+`POST /api/stripe/webhook` verifies the signature against the raw body. `checkout.session.completed` marks the order PAID and takes the stock in one transaction, conditional on the order still being unpaid, so retries and duplicates do nothing. `checkout.session.expired` cancels it. The confirmation page re-reads the order every two seconds for up to 20 seconds while it is pending.
+
+In the Stripe dashboard (test mode), add a webhook endpoint at `https://<site>/api/stripe/webhook` for `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed` and `checkout.session.expired`, and put its signing secret in `STRIPE_WEBHOOK_SECRET`. Locally:
+
+```bash
+stripe listen --forward-to localhost:3000/api/stripe/webhook
+```
+
+Only test-mode keys are accepted.
 
 ## Arabic copy
 

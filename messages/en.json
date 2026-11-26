@@ -6,7 +6,9 @@
     "switchLocale": "العربية",
     "nav": "Main",
     "realms": "Realms",
-    "finder": "The astrolabe"
+    "finder": "The astrolabe",
+    "cart": "Cart",
+    "cartCount": "Cart, {count, plural, =0 {empty} one {# item} other {# items}}"
   },
   "Fragrance": {
     "realm": "Realm",
@@ -26,7 +28,12 @@
     "flaconLabel": "Engraved drawing of the {name} bottle",
     "ornamentLabel": "Engraved {name}",
     "fromPrice": "From {price}",
-    "inRealm": "From {realm}"
+    "inRealm": "From {realm}",
+    "size": "Size",
+    "quantity": "Quantity",
+    "addToCart": "Add to cart",
+    "added": "Added to your cart",
+    "viewCart": "View cart"
   },
   "Family": {
     "FLORAL": "Floral",
@@ -109,5 +116,46 @@
     "astrolabeLabel": "Brass astrolabe set to {family}, {wear}, intensity {intensity}.",
     "idleLabel": "A brass astrolabe, turning slowly.",
     "cta": "Turn the astrolabe"
+  },
+  "Cart": {
+    "title": "Your cart",
+    "empty": "Your cart is empty.",
+    "emptyCta": "Find a perfume with the astrolabe",
+    "remove": "Remove",
+    "decrease": "One fewer",
+    "increase": "One more",
+    "quantity": "Quantity",
+    "total": "Total",
+    "vat": "Includes VAT at 5%",
+    "vatNote": "All prices include UAE VAT.",
+    "email": "Email for this order",
+    "checkout": "Pay with Stripe",
+    "redirecting": "Opening Stripe",
+    "testMode": "Test mode. Pay with card 4242 4242 4242 4242, any future expiry date and any CVC.",
+    "shortStock": "{available, plural, =0 {Sold out since you added it.} one {Only one left. Lower the quantity to continue.} other {Only # left. Lower the quantity to continue.}}",
+    "notFound": "No longer available. Remove it to continue.",
+    "badQty": "Choose between 1 and 10.",
+    "badEmail": "Enter a valid email address.",
+    "unavailable": "Payments are not set up on this site yet.",
+    "failed": "Something went wrong reaching Stripe. Your cart is unchanged; please try again.",
+    "cancelled": "Payment cancelled. Your cart is as you left it.",
+    "fixLines": "Some lines need attention before you can pay."
+  },
+  "Order": {
+    "title": "Your order",
+    "number": "Order {id}",
+    "confirming": "Confirming your payment",
+    "confirmingBody": "Stripe is telling us your payment went through. This takes a few seconds.",
+    "paid": "Paid, thank you",
+    "paidBody": "Your order is confirmed under {email} and will be prepared in Dubai. Keep this page as your record.",
+    "pendingLong": "Payment received, confirmation pending",
+    "pendingLongBody": "Stripe has taken your payment but has not confirmed it to us yet. There is nothing more to do; this page will show the confirmation once it arrives.",
+    "cancelled": "This order was cancelled",
+    "cancelledBody": "No payment was taken.",
+    "items": "Items",
+    "total": "Total paid",
+    "totalDue": "Total",
+    "vat": "of which VAT at 5%",
+    "continue": "Back to the house"
   }
 }

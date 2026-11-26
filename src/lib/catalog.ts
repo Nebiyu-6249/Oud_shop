@@ -135,3 +135,29 @@ export async function getGradeMap() {
   }
   return { palettes, fragranceRealm };
 }
+
+/** Every variant with what the cart needs to display it. Prices are display only. */
+export async function getCartCatalog() {
+  "use cache";
+  cacheLife("days");
+  cacheTag("catalog");
+  const rows = await db.variant.findMany({
+    select: {
+      id: true,
+      label: true,
+      priceFils: true,
+      fragrance: { select: { slug: true, nameEn: true, nameAr: true, flaconParams: true } },
+    },
+  });
+  return rows.map((r) => ({
+    id: r.id,
+    label: r.label,
+    priceFils: r.priceFils,
+    slug: r.fragrance.slug,
+    nameEn: r.fragrance.nameEn,
+    nameAr: r.fragrance.nameAr,
+    flaconParams: parseFlaconParams(r.fragrance.flaconParams),
+  }));
+}
+
+export type CartCatalogEntry = Awaited<ReturnType<typeof getCartCatalog>>[number];

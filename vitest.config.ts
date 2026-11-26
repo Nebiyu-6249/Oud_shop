@@ -3,10 +3,16 @@ import path from "node:path";
 
 export default defineConfig({
   resolve: {
-    alias: { "@": path.resolve(__dirname, "src") },
+    alias: {
+      "@": path.resolve(__dirname, "src"),
+      "server-only": path.resolve(__dirname, "test/server-only.ts"),
+    },
   },
   test: {
     include: ["src/**/*.test.ts", "scripts/**/*.test.mjs"],
     environment: "node",
+    setupFiles: ["test/setup.ts"],
+    // database tests share one Postgres; keep files from racing each other
+    fileParallelism: false,
   },
 });
