@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+/* House palette. Realm pages override the --realm-* grade on their subtree. */
+:root {
+  --night: #0d0a07;
+  --brass: #b08d57;
+  --parchment: #e9dfc9;
+  --ember: #8e2b1e;
+
+  --realm-base: var(--night);
+  --realm-surface: #17120d;
+  --realm-accent: var(--brass);
+  --realm-ink: var(--parchment);
+  --realm-glow: var(--ember);
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-night: var(--night);
+  --color-brass: var(--brass);
+  --color-parchment: var(--parchment);
+  --color-ember: var(--ember);
+
+  --color-realm-base: var(--realm-base);
+  --color-realm-surface: var(--realm-surface);
+  --color-realm-accent: var(--realm-accent);
+  --color-realm-ink: var(--realm-ink);
+  --color-realm-glow: var(--realm-glow);
+
+  --font-display: var(--font-display-face);
+  --font-body: var(--font-body-face);
+}
+
+html[lang="en"] {
+  --font-display-face: var(--font-cinzel), serif;
+  --font-body-face: var(--font-garamond), serif;
+}
+
+html[lang="ar"] {
+  --font-display-face: var(--font-reem-kufi), var(--font-amiri), serif;
+  --font-body-face: var(--font-amiri), serif;
+}
+
+body {
+  background: var(--realm-base);
+  color: var(--realm-ink);
+  font-family: var(--font-body-face);
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+
+/* Rules engraved into brass: a thin line, never a shadow. */
+.rule {
+  border-color: color-mix(in srgb, var(--realm-accent) 45%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--realm-accent);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

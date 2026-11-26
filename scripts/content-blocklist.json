@@ -1,0 +1,32 @@
+{
+  "description": "Terms that must not appear in shipped content. Matched case-sensitively as whole words.",
+  "terms": [
+    "Game of Thrones",
+    "Westeros",
+    "Essos",
+    "Winterfell",
+    "King's Landing",
+    "Dorne",
+    "Sunspear",
+    "Braavos",
+    "Qarth",
+    "Valyria",
+    "Valyrian",
+    "Lannister",
+    "Stark",
+    "Targaryen",
+    "Martell",
+    "Baratheon",
+    "Greyjoy",
+    "Tyrell",
+    "Dothraki",
+    "Khaleesi",
+    "Iron Throne",
+    "Night's Watch",
+    "Winter is coming",
+    "Seven Kingdoms",
+    "White Walker",
+    "Highgarden",
+    "Casterly Rock"
+  ]
+}

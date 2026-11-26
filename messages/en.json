@@ -1,0 +1,52 @@
+{
+  "Site": {
+    "name": "Asturlab",
+    "tagline": "Oud and perfume, Dubai",
+    "skipToContent": "Skip to content",
+    "switchLocale": "العربية"
+  },
+  "Fragrance": {
+    "realm": "Realm",
+    "family": "Family",
+    "form": "Form",
+    "wear": "Wear",
+    "intensity": "Intensity",
+    "intensityValue": "{value} of 5",
+    "notes": "Notes",
+    "chordIntro": "Held in a single chord, without top, heart or base.",
+    "variants": "Sizes",
+    "vatIncluded": "Prices include 5% VAT",
+    "stockChecking": "Checking the cellar",
+    "inStock": "In stock",
+    "lowStock": "{count, plural, one {Last one} other {Only # left}}",
+    "soldOut": "Sold out"
+  },
+  "Family": {
+    "FLORAL": "Floral",
+    "AMBER": "Amber",
+    "WOODY": "Woody",
+    "FRESH": "Fresh"
+  },
+  "Form": {
+    "EDP": "Eau de parfum",
+    "EXTRAIT": "Extrait de parfum",
+    "ATTAR": "Attar",
+    "BAKHOOR": "Bakhoor"
+  },
+  "Wear": {
+    "DAY": "Day",
+    "NIGHT": "Night",
+    "BOTH": "Day and night"
+  },
+  "Tier": {
+    "TOP": "Top",
+    "HEART": "Heart",
+    "BASE": "Base",
+    "CHORD": "Chord"
+  },
+  "NotFound": {
+    "title": "Nothing on this shelf",
+    "body": "The page you were looking for is not here.",
+    "home": "Return to the house"
+  }
+}

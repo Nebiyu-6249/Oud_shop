@@ -1,0 +1,146 @@
+// Asturlab data model. Money is integer fils (1 AED = 100 fils), VAT-inclusive.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Family {
+  FLORAL
+  AMBER
+  WOODY
+  FRESH
+}
+
+enum Form {
+  EDP
+  EXTRAIT
+  ATTAR
+  BAKHOOR
+}
+
+enum Structure {
+  PYRAMID
+  CHORD
+}
+
+enum Wear {
+  DAY
+  NIGHT
+  BOTH
+}
+
+enum Tier {
+  TOP
+  HEART
+  BASE
+  CHORD
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+model Realm {
+  id         String      @id @default(cuid())
+  slug       String      @unique
+  nameEn     String
+  nameAr     String
+  storyEn    String
+  storyAr    String
+  /// { base, surface, accent, ink, glow } as hex strings
+  palette    Json
+  sortOrder  Int
+  fragrances Fragrance[]
+}
+
+model Fragrance {
+  id           String          @id @default(cuid())
+  slug         String          @unique
+  nameEn       String
+  nameAr       String
+  realmId      String
+  realm        Realm           @relation(fields: [realmId], references: [id])
+  family       Family
+  subfamily    String
+  form         Form
+  structure    Structure
+  /// 1 to 5
+  intensity    Int
+  wear         Wear
+  storyEn      String
+  storyAr      String
+  /// Drives the engraved SVG flacon generator; see src/lib/flacon.ts
+  flaconParams Json
+  variants     Variant[]
+  notes        FragranceNote[]
+
+  @@index([realmId])
+}
+
+model Variant {
+  id          String      @id @default(cuid())
+  fragranceId String
+  fragrance   Fragrance   @relation(fields: [fragranceId], references: [id], onDelete: Cascade)
+  /// "50 ml", "12 ml", "60 g"
+  label       String
+  /// VAT-inclusive price in fils
+  priceFils   Int
+  sku         String      @unique
+  stock       Int
+  orderItems  OrderItem[]
+
+  @@index([fragranceId])
+}
+
+model Note {
+  id          String          @id @default(cuid())
+  nameEn      String
+  nameAr      String
+  /// Key into the engraved botanical ornament set
+  ornamentKey String
+  fragrances  FragranceNote[]
+}
+
+model FragranceNote {
+  fragranceId String
+  fragrance   Fragrance @relation(fields: [fragranceId], references: [id], onDelete: Cascade)
+  noteId      String
+  note        Note      @relation(fields: [noteId], references: [id])
+  tier        Tier
+  /// 1 to 3
+  weight      Int
+
+  @@id([fragranceId, noteId])
+  @@index([noteId])
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  email           String
+  locale          String
+  status          OrderStatus @default(PENDING)
+  totalFils       Int
+  vatFils         Int
+  stripeSessionId String      @unique
+  createdAt       DateTime    @default(now())
+  items           OrderItem[]
+}
+
+model OrderItem {
+  id            String  @id @default(cuid())
+  orderId       String
+  order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId     String
+  variant       Variant @relation(fields: [variantId], references: [id])
+  qty           Int
+  unitPriceFils Int
+
+  @@index([orderId])
+}

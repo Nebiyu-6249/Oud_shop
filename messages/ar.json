@@ -1,0 +1,53 @@
+{
+  "_review": "DRAFT: every Arabic string in this file was written by the developer and needs review by a native Arabic speaker before launch.",
+  "Site": {
+    "name": "أسطرلاب",
+    "tagline": "عود وعطور، دبي",
+    "skipToContent": "انتقل إلى المحتوى",
+    "switchLocale": "English"
+  },
+  "Fragrance": {
+    "realm": "الإقليم",
+    "family": "العائلة",
+    "form": "الصيغة",
+    "wear": "وقت الاستعمال",
+    "intensity": "الشدة",
+    "intensityValue": "{value} من 5",
+    "notes": "النفحات",
+    "chordIntro": "نفحات مجتمعة في وتر واحد، بلا قمة ولا قلب ولا قاعدة.",
+    "variants": "الأحجام",
+    "vatIncluded": "الأسعار شاملة ضريبة القيمة المضافة 5%",
+    "stockChecking": "نتحقق من المخزن",
+    "inStock": "متوفر",
+    "lowStock": "{count, plural, one {القطعة الأخيرة} two {بقيت قطعتان} few {بقي # قطع} many {بقي # قطعة} other {بقي # قطعة}}",
+    "soldOut": "نفدت الكمية"
+  },
+  "Family": {
+    "FLORAL": "زهري",
+    "AMBER": "عنبري",
+    "WOODY": "خشبي",
+    "FRESH": "منعش"
+  },
+  "Form": {
+    "EDP": "أو دو بارفان",
+    "EXTRAIT": "خلاصة عطر",
+    "ATTAR": "عطر زيتي",
+    "BAKHOOR": "بخور"
+  },
+  "Wear": {
+    "DAY": "نهاري",
+    "NIGHT": "ليلي",
+    "BOTH": "ليلي ونهاري"
+  },
+  "Tier": {
+    "TOP": "القمة",
+    "HEART": "القلب",
+    "BASE": "القاعدة",
+    "CHORD": "الوتر"
+  },
+  "NotFound": {
+    "title": "لا شيء على هذا الرف",
+    "body": "الصفحة التي تبحث عنها غير موجودة.",
+    "home": "العودة إلى الدار"
+  }
+}

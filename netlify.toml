@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build:netlify"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# @netlify/plugin-nextjs is installed automatically for Next.js sites; route
+# handlers, proxy and dynamic rendering run as Netlify Functions.
