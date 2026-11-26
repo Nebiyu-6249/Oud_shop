@@ -6,6 +6,8 @@ import { notFound } from "next/navigation";
 import * as rootParams from "next/root-params";
 import { directionOf, routing } from "@/i18n/routing";
 import { SiteHeader } from "@/components/site-header";
+import { Grade } from "@/components/realm/grade";
+import { getGradeMap } from "@/lib/catalog";
 import "../globals.css";
 
 const cinzel = Cinzel({ subsets: ["latin"], variable: "--font-cinzel", display: "swap" });
@@ -43,6 +45,7 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
   const locale = await rootParams.locale();
   if (!hasLocale(routing.locales, locale)) notFound();
   const t = await getTranslations("Site");
+  const grade = await getGradeMap();
 
   return (
     <html
@@ -50,7 +53,7 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
       dir={directionOf(locale)}
       className={`${cinzel.variable} ${garamond.variable} ${reemKufi.variable} ${amiri.variable} antialiased`}
     >
-      <body className="min-h-dvh">
+      <body>
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:bg-night focus:px-3 focus:py-2"
@@ -59,8 +62,10 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
         </a>
         {/* Client components get only the messages they need; none yet. */}
         <NextIntlClientProvider messages={{}}>
-          <SiteHeader />
-          {children}
+          <Grade palettes={grade.palettes} fragranceRealm={grade.fragranceRealm}>
+            <SiteHeader />
+            <div className="flex-1">{children}</div>
+          </Grade>
         </NextIntlClientProvider>
       </body>
     </html>

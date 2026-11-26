@@ -30,7 +30,7 @@ export async function getFragrance(slug: string) {
       },
       notes: {
         include: { note: true },
-        orderBy: [{ weight: "desc" }],
+        orderBy: [{ weight: "desc" }, { noteId: "asc" }],
       },
     },
   });
@@ -52,4 +52,80 @@ export async function getStock(fragranceId: string): Promise<Record<string, numb
     select: { id: true, stock: true },
   });
   return Object.fromEntries(rows.map((r) => [r.id, r.stock]));
+}
+
+const cardSelect = {
+  id: true,
+  slug: true,
+  nameEn: true,
+  nameAr: true,
+  form: true,
+  family: true,
+  flaconParams: true,
+  variants: { select: { priceFils: true } },
+} as const;
+
+type CardRow = {
+  id: string;
+  slug: string;
+  nameEn: string;
+  nameAr: string;
+  form: FragranceDetail["form"];
+  family: FragranceDetail["family"];
+  flaconParams: unknown;
+  variants: { priceFils: number }[];
+};
+
+const FORM_ORDER = { EXTRAIT: 0, EDP: 0, ATTAR: 1, BAKHOOR: 2 } as const;
+
+function toCard(f: CardRow) {
+  return {
+    id: f.id,
+    slug: f.slug,
+    nameEn: f.nameEn,
+    nameAr: f.nameAr,
+    form: f.form,
+    family: f.family,
+    flaconParams: parseFlaconParams(f.flaconParams),
+    fromFils: Math.min(...f.variants.map((v) => v.priceFils)),
+  };
+}
+
+export type FragranceCard = ReturnType<typeof toCard>;
+
+export async function getRealms() {
+  "use cache";
+  cacheLife("days");
+  cacheTag("catalog");
+  const rows = await db.realm.findMany({
+    orderBy: { sortOrder: "asc" },
+    include: { fragrances: { select: cardSelect } },
+  });
+  return rows.map((r) => ({
+    ...r,
+    palette: parsePalette(r.palette),
+    fragrances: r.fragrances.map(toCard).sort((a, b) => FORM_ORDER[a.form] - FORM_ORDER[b.form]),
+  }));
+}
+
+export type RealmWithFragrances = Awaited<ReturnType<typeof getRealms>>[number];
+
+export async function getRealm(slug: string) {
+  const realms = await getRealms();
+  return realms.find((r) => r.slug === slug) ?? null;
+}
+
+/** Everything the colour grade needs to follow navigation. */
+export async function getGradeMap() {
+  "use cache";
+  cacheLife("days");
+  cacheTag("catalog");
+  const realms = await getRealms();
+  const palettes: Record<string, ReturnType<typeof parsePalette>> = {};
+  const fragranceRealm: Record<string, string> = {};
+  for (const r of realms) {
+    palettes[r.slug] = r.palette;
+    for (const f of r.fragrances) fragranceRealm[f.slug] = r.slug;
+  }
+  return { palettes, fragranceRealm };
 }

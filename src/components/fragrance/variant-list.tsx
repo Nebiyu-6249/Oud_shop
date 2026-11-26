@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import type { FragranceDetail } from "@/lib/catalog";
 import { getStock } from "@/lib/catalog";
 import { formatAED } from "@/lib/money";
+import { formatVariantLabel } from "@/lib/units";
 
 type Variants = FragranceDetail["variants"];
 const LOW_STOCK = 5;
@@ -36,7 +37,7 @@ export async function VariantList({
         const s = status(v.id);
         return (
           <li key={v.id} className="rule flex items-baseline justify-between gap-4 border-t py-3 last:border-b">
-            <span className="text-lg">{v.label}</span>
+            <span className="text-lg">{formatVariantLabel(v.label, locale)}</span>
             <span className={`text-base ${s.muted ? "text-realm-ink/60" : "text-realm-ink/85"}`}>
               {s.text}
             </span>

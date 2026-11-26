@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import * as rootParams from "next/root-params";
-import { Suspense, type CSSProperties } from "react";
+import { Suspense } from "react";
+import { Link } from "@/i18n/navigation";
 import { getFragrance, getFragranceSlugs } from "@/lib/catalog";
-import { paletteStyle } from "@/lib/palette";
+import { Flacon } from "@/components/flacon/flacon";
 import { NotesDisplay } from "@/components/fragrance/notes-display";
 import { IntensityMarks } from "@/components/fragrance/intensity-marks";
 import { VariantList, VariantStock } from "@/components/fragrance/variant-list";
@@ -35,23 +36,31 @@ export default async function FragrancePage({ params }: PageProps<"/[locale]/fra
   const tFamily = await getTranslations("Family");
   const tForm = await getTranslations("Form");
   const tWear = await getTranslations("Wear");
+  const tSub = await getTranslations("Subfamily");
+  const name = ar ? f.nameAr : f.nameEn;
 
   return (
-    <main
-      id="main"
-      style={paletteStyle(f.realm.palette) as CSSProperties}
-      className="bg-realm-base text-realm-ink"
-    >
-      <article className="mx-auto grid max-w-6xl gap-12 px-5 py-12 sm:px-10 lg:grid-cols-[1fr_1.2fr] lg:py-20">
+    <main id="main">
+      <article className="mx-auto grid max-w-6xl gap-12 px-5 py-12 sm:px-10 lg:grid-cols-[1fr_1.3fr] lg:py-20">
         <header className="lg:col-span-2">
-          <p className="font-display text-sm tracking-[0.25em] text-realm-accent uppercase">
+          <Link
+            href={`/realms/${f.realm.slug}`}
+            className="font-display text-sm tracking-[0.25em] text-realm-accent uppercase underline-offset-4 hover:underline"
+          >
             {ar ? f.realm.nameAr : f.realm.nameEn}
-          </p>
-          <h1 className="font-display mt-3 text-5xl leading-tight sm:text-6xl">
-            {ar ? f.nameAr : f.nameEn}
-          </h1>
+          </Link>
+          <h1 className="font-display mt-3 text-5xl leading-tight sm:text-6xl">{name}</h1>
           <p className="mt-2 text-realm-ink/75">{tForm(f.form)}</p>
         </header>
+
+        <div className="flex justify-center lg:row-span-2">
+          <Flacon
+            params={f.flaconParams}
+            id={`page-${f.slug}`}
+            label={t("flaconLabel", { name })}
+            className="h-[22rem] w-auto text-realm-accent sm:h-[30rem]"
+          />
+        </div>
 
         <section className="space-y-8">
           <p className="text-xl leading-relaxed">{ar ? f.storyAr : f.storyEn}</p>
@@ -61,7 +70,10 @@ export default async function FragrancePage({ params }: PageProps<"/[locale]/fra
               <dt className="text-realm-ink/65">{t("family")}</dt>
               <dd>
                 {tFamily(f.family)}
-                <span className="text-realm-ink/65">, {f.subfamily}</span>
+                <span className="text-realm-ink/65">
+                  {ar ? "، " : ", "}
+                  {tSub(f.subfamily)}
+                </span>
               </dd>
             </div>
             <div>

@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import type { FragranceDetail } from "@/lib/catalog";
+import { Ornament } from "@/components/flacon/ornament";
 
 type Props = {
   structure: FragranceDetail["structure"];
@@ -26,9 +27,10 @@ export async function NotesDisplay({ structure, notes, locale }: Props) {
     return (
       <div className="mt-4">
         <p className="text-base text-realm-ink/70">{t("chordIntro")}</p>
-        <ul className="rule mt-4 flex flex-wrap items-baseline gap-x-6 gap-y-2 border-y py-4">
+        <ul className="rule mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 border-y py-3">
           {notes.map((n) => (
-            <li key={n.noteId} className={WEIGHT_CLASS[n.weight]}>
+            <li key={n.noteId} className={`flex items-center gap-2 ${WEIGHT_CLASS[n.weight]}`}>
+              <Ornament ornamentKey={n.note.ornamentKey} className="h-10 w-10 shrink-0 text-realm-accent" />
               {name(n)}
             </li>
           ))}
@@ -47,16 +49,17 @@ export async function NotesDisplay({ structure, notes, locale }: Props) {
       {tiers.map(({ tier, notes: tierNotes }, i) => (
         <div
           key={tier}
-          className="rule grid grid-cols-[6rem_1fr] items-baseline gap-4 border-t py-3 last:border-b"
+          className="rule grid grid-cols-[5.5rem_1fr] items-center gap-4 border-t py-2 last:border-b"
           style={{ paddingInlineStart: `${i * 1.25}rem` }}
         >
           <dt className="font-display text-sm tracking-[0.2em] text-realm-accent uppercase">
             {tTier(tier)}
           </dt>
           <dd>
-            <ul className="flex flex-wrap items-baseline gap-x-5 gap-y-1">
+            <ul className="flex flex-wrap items-center gap-x-5 gap-y-1">
               {tierNotes.map((n) => (
-                <li key={n.noteId} className={WEIGHT_CLASS[n.weight]}>
+                <li key={n.noteId} className={`flex items-center gap-2 ${WEIGHT_CLASS[n.weight]}`}>
+                  <Ornament ornamentKey={n.note.ornamentKey} className="h-9 w-9 shrink-0 text-realm-accent" />
                   {name(n)}
                 </li>
               ))}

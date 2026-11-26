@@ -3,7 +3,10 @@
     "name": "Asturlab",
     "tagline": "Oud and perfume, Dubai",
     "skipToContent": "Skip to content",
-    "switchLocale": "العربية"
+    "switchLocale": "العربية",
+    "nav": "Main",
+    "realms": "Realms",
+    "finder": "Find your scent"
   },
   "Fragrance": {
     "realm": "Realm",
@@ -19,7 +22,11 @@
     "stockChecking": "Checking the cellar",
     "inStock": "In stock",
     "lowStock": "{count, plural, one {Last one} other {Only # left}}",
-    "soldOut": "Sold out"
+    "soldOut": "Sold out",
+    "flaconLabel": "Engraved drawing of the {name} bottle",
+    "ornamentLabel": "Engraved {name}",
+    "fromPrice": "From {price}",
+    "inRealm": "From {realm}"
   },
   "Family": {
     "FLORAL": "Floral",
@@ -48,5 +55,29 @@
     "title": "Nothing on this shelf",
     "body": "The page you were looking for is not here.",
     "home": "Return to the house"
+  },
+  "Subfamily": {
+    "oud": "Oud",
+    "spiced-amber": "Spiced amber",
+    "aromatic": "Aromatic",
+    "citrus-resin": "Citrus resin",
+    "incense": "Incense",
+    "rose": "Rose",
+    "white-floral": "White floral",
+    "floral-oud": "Floral oud",
+    "leather": "Leather",
+    "green": "Green",
+    "woody-amber": "Woody amber"
+  },
+  "Realm": {
+    "fragrances": "The perfumes",
+    "otherRealms": "The other realms",
+    "enter": "Enter {realm}"
+  },
+  "Home": {
+    "heroTitle": "Perfume you find by hand",
+    "heroBody": "Agarwood, resin and flowers from four realms, distilled in Dubai. Nobody can smell a perfume through a screen, so turn the astrolabe instead and let it point you to three.",
+    "realmsHeading": "Four realms",
+    "featuredHeading": "From each realm"
   }
 }

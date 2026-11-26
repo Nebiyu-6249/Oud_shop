@@ -1,34 +1,62 @@
+import type { CSSProperties } from "react";
 import { getTranslations } from "next-intl/server";
 import * as rootParams from "next/root-params";
 import { Link } from "@/i18n/navigation";
-import { getFragrance, getFragranceSlugs } from "@/lib/catalog";
+import { getRealms } from "@/lib/catalog";
+import { paletteStyle } from "@/lib/palette";
+import { FragranceCard } from "@/components/realm/fragrance-card";
+import { RealmFrameTop } from "@/components/realm/frames";
 
-// Phase 1 placeholder: the hero, astrolabe and realms arrive in later phases.
+// The idle astrolabe joins the hero in phase 3.
 export default async function HomePage() {
   const locale = await rootParams.locale();
-  const t = await getTranslations("Site");
-  const tForm = await getTranslations("Form");
-  const fragrances = (await Promise.all((await getFragranceSlugs()).map(getFragrance))).filter(
-    (f) => f !== null,
-  );
+  const ar = locale === "ar";
+  const t = await getTranslations("Home");
+  const tRealm = await getTranslations("Realm");
+  const realms = await getRealms();
 
   return (
-    <main id="main" className="mx-auto max-w-4xl px-5 py-16 sm:px-10">
-      <h1 className="font-display text-5xl tracking-[0.15em] uppercase sm:text-7xl">{t("name")}</h1>
-      <p className="mt-4 text-xl text-parchment/80">{t("tagline")}</p>
-      <ul className="mt-14">
-        {fragrances.map((f) => (
-          <li key={f.slug} className="rule border-t last:border-b">
-            <Link
-              href={`/fragrance/${f.slug}`}
-              className="flex items-baseline justify-between gap-4 py-5 hover:text-brass"
-            >
-              <span className="font-display text-2xl">{locale === "ar" ? f.nameAr : f.nameEn}</span>
-              <span className="text-base text-parchment/70">{tForm(f.form)}</span>
-            </Link>
-          </li>
-        ))}
-      </ul>
+    <main id="main">
+      <section className="mx-auto max-w-5xl px-5 pt-16 pb-20 sm:px-10 sm:pt-28 sm:pb-32">
+        <h1 className="font-display text-5xl leading-[1.05] sm:text-7xl">{t("heroTitle")}</h1>
+        <p className="mt-8 max-w-2xl text-xl leading-relaxed text-realm-ink/85 sm:text-2xl">{t("heroBody")}</p>
+      </section>
+
+      <section id="realms" aria-labelledby="realms-heading">
+        <h2 id="realms-heading" className="font-display mx-auto max-w-6xl px-5 pb-6 text-sm tracking-[0.25em] text-realm-accent uppercase sm:px-10">
+          {t("realmsHeading")}
+        </h2>
+        <ul>
+          {realms.map((r) => (
+            <li key={r.slug} style={paletteStyle(r.palette) as CSSProperties} className="bg-realm-base text-realm-ink">
+              <RealmFrameTop slug={r.slug} />
+              <Link
+                href={`/realms/${r.slug}`}
+                className="group mx-auto grid max-w-6xl gap-4 px-5 py-12 sm:grid-cols-[1fr_1.4fr] sm:px-10"
+                aria-label={tRealm("enter", { realm: ar ? r.nameAr : r.nameEn })}
+              >
+                <span className="font-display text-4xl text-realm-accent group-hover:underline group-hover:underline-offset-8">
+                  {ar ? r.nameAr : r.nameEn}
+                </span>
+                <span className="text-lg leading-relaxed text-realm-ink/85">{ar ? r.storyAr : r.storyEn}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section aria-labelledby="featured-heading" className="mx-auto max-w-6xl px-5 py-20 sm:px-10">
+        <h2 id="featured-heading" className="font-display mb-8 text-sm tracking-[0.25em] text-realm-accent uppercase">
+          {t("featuredHeading")}
+        </h2>
+        <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {realms.map((r) => (
+            <li key={r.slug} style={paletteStyle(r.palette) as CSSProperties} className="bg-realm-base text-realm-ink">
+              <FragranceCard f={r.fragrances[0]} locale={locale} />
+            </li>
+          ))}
+        </ul>
+      </section>
     </main>
   );
 }

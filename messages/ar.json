@@ -4,7 +4,10 @@
     "name": "أسطرلاب",
     "tagline": "عود وعطور، دبي",
     "skipToContent": "انتقل إلى المحتوى",
-    "switchLocale": "English"
+    "switchLocale": "English",
+    "nav": "الرئيسية",
+    "realms": "الأقاليم",
+    "finder": "اعثر على عطرك"
   },
   "Fragrance": {
     "realm": "الإقليم",
@@ -20,7 +23,11 @@
     "stockChecking": "نتحقق من المخزن",
     "inStock": "متوفر",
     "lowStock": "{count, plural, one {القطعة الأخيرة} two {بقيت قطعتان} few {بقي # قطع} many {بقي # قطعة} other {بقي # قطعة}}",
-    "soldOut": "نفدت الكمية"
+    "soldOut": "نفدت الكمية",
+    "flaconLabel": "رسم محفور لقارورة {name}",
+    "ornamentLabel": "{name} محفور",
+    "fromPrice": "ابتداءً من {price}",
+    "inRealm": "من {realm}"
   },
   "Family": {
     "FLORAL": "زهري",
@@ -49,5 +56,29 @@
     "title": "لا شيء على هذا الرف",
     "body": "الصفحة التي تبحث عنها غير موجودة.",
     "home": "العودة إلى الدار"
+  },
+  "Subfamily": {
+    "oud": "عود",
+    "spiced-amber": "عنبر متبّل",
+    "aromatic": "عطري",
+    "citrus-resin": "راتنج حمضي",
+    "incense": "بخوري",
+    "rose": "وردي",
+    "white-floral": "زهور بيضاء",
+    "floral-oud": "عود زهري",
+    "leather": "جلدي",
+    "green": "أخضر",
+    "woody-amber": "عنبر خشبي"
+  },
+  "Realm": {
+    "fragrances": "العطور",
+    "otherRealms": "الأقاليم الأخرى",
+    "enter": "ادخل {realm}"
+  },
+  "Home": {
+    "heroTitle": "عطر تجده بيدك",
+    "heroBody": "عود وراتنج وأزهار من أربعة أقاليم، تُقطّر في دبي. لا أحد يشمّ عطرًا عبر الشاشة، فأدر الأسطرلاب بدلًا من ذلك ودعه يدلّك على ثلاثة.",
+    "realmsHeading": "أربعة أقاليم",
+    "featuredHeading": "من كل إقليم"
   }
 }

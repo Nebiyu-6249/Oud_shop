@@ -1,6 +1,6 @@
 // Parameters for the engraved SVG flacon generator. Stored as Fragrance.flaconParams.
 
-export const SILHOUETTES = ["flask", "ewer", "column", "vial", "censer"] as const;
+export const SILHOUETTES = ["flask", "ewer", "column", "vial", "jar"] as const;
 export const STOPPERS = ["dome", "finial", "faceted", "rod", "lid"] as const;
 export const ENGRAVINGS = ["kufic-band", "lattice", "vine", "none"] as const;
 

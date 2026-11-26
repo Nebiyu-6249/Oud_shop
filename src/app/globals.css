@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+/*
+ * The grade variables are registered as colours so they interpolate: when the
+ * Grade wrapper swaps realms, the whole page eases from one grade to the next.
+ */
+@property --realm-base { syntax: "<color>"; inherits: true; initial-value: #0d0a07; }
+@property --realm-surface { syntax: "<color>"; inherits: true; initial-value: #17120d; }
+@property --realm-accent { syntax: "<color>"; inherits: true; initial-value: #b08d57; }
+@property --realm-ink { syntax: "<color>"; inherits: true; initial-value: #e9dfc9; }
+@property --realm-glow { syntax: "<color>"; inherits: true; initial-value: #8e2b1e; }
+
 /* House palette. Realm pages override the --realm-* grade on their subtree. */
 :root {
   --night: #0d0a07;
@@ -43,11 +53,23 @@ html[lang="ar"] {
 }
 
 body {
-  background: var(--realm-base);
+  background: var(--night);
   color: var(--realm-ink);
   font-family: var(--font-body-face);
   font-size: 1.125rem;
   line-height: 1.6;
+}
+
+.grade {
+  background: var(--realm-base);
+  color: var(--realm-ink);
+  --grade-ease: cubic-bezier(0.7, 0, 0.2, 1);
+  transition:
+    --realm-base 1.4s var(--grade-ease),
+    --realm-surface 1.4s var(--grade-ease),
+    --realm-accent 1.4s var(--grade-ease),
+    --realm-ink 1.4s var(--grade-ease),
+    --realm-glow 1.4s var(--grade-ease);
 }
 
 /* Rules engraved into brass: a thin line, never a shadow. */
