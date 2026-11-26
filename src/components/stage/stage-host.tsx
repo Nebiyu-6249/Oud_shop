@@ -26,7 +26,7 @@ function webglAvailable() {
  * chunk) only after the visitor first interacts: well after the hero text has
  * painted, and never on a page nobody is using. With ?debug it loads at once.
  */
-export function StageHost() {
+export function StageHost({ familyLabels }: { familyLabels: string[] }) {
   const pathname = usePathname();
   const reduced = useReducedMotion();
   const [load, setLoad] = useState(false);
@@ -65,5 +65,5 @@ export function StageHost() {
     };
   }, []);
 
-  return load ? <StageRuntime /> : null;
+  return load ? <StageRuntime familyLabels={familyLabels} /> : null;
 }

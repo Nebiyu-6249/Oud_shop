@@ -87,7 +87,7 @@ function detentNotch(r: number, angle: number, depth = 0.018): Stroke {
  * A circular band in the manner of Kufic inscription: radial ascenders with
  * split tips and low square bodies on a baseline. Abstract, not legible.
  */
-function kuficBand(rIn: number, rOut: number, from: number, to: number, unit: number): Stroke[] {
+export function kuficBand(rIn: number, rOut: number, from: number, to: number, unit: number): Stroke[] {
   const out: Stroke[] = [{ d: arc([0, 0], rIn, from, to) }];
   const h = rOut - rIn;
   for (let a = from + unit * 0.3, i = 0; a < to - unit * 0.3; a += unit, i++) {
@@ -106,7 +106,7 @@ function kuficBand(rIn: number, rOut: number, from: number, to: number, unit: nu
   return out;
 }
 
-const star8 = (c: P, r: number) => {
+export const star8 = (c: P, r: number) => {
   const pts: P[] = [];
   for (let i = 0; i < 16; i++) pts.push(polar(c, i % 2 ? r * 0.45 : r, i * 22.5 - 90));
   return poly(pts, true);

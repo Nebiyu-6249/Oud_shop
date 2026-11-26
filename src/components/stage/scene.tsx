@@ -2,7 +2,11 @@
 
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo } from "react";
+import { Environment, Lightformer } from "@react-three/drei";
 import { cameraAt, stationCenter, structureState, type StationId, PLATE_R } from "@/lib/choreography";
+import { Gearworks } from "./parts/gears";
+import { Plate } from "./parts/plate";
+import { Rete } from "./parts/rete";
 import { stageStore } from "@/lib/stage-store";
 import { frameStats } from "./frame-stats";
 
@@ -15,10 +19,19 @@ function Invalidator() {
 
 function CameraRig() {
   const pose = useMemo(() => cameraAt(0), []);
-  useFrame(({ camera, gl }) => {
+  useFrame(({ camera, gl, size }) => {
     cameraAt(stageStore.getState().progress, pose);
     camera.position.copy(pose.pos);
     camera.lookAt(pose.look);
+    if (stageStore.getState().debug) {
+      (window as unknown as { __stage: unknown }).__stage = {
+        pos: camera.position.toArray(),
+        progress: stageStore.getState().progress,
+        quat: camera.quaternion.toArray(),
+        aspect: (camera as import("three").PerspectiveCamera).aspect,
+        size: [size.width, size.height],
+      };
+    }
     frameStats.frames++;
     frameStats.calls = gl.info.render.calls;
     frameStats.triangles = gl.info.render.triangles;
@@ -56,20 +69,23 @@ function Placeholders() {
 }
 type THREE_Mesh = import("three").Mesh;
 
-export function Scene() {
+export function Scene({ familyLabels }: { familyLabels: string[] }) {
   return (
     <>
       <color attach="background" args={["#0d0a07"]} />
       <fog attach="fog" args={["#0d0a07", 18, 90]} />
       <ambientLight intensity={0.35} />
       <directionalLight position={[-6, 10, 4]} intensity={2.2} />
-      <mesh rotation-x={-Math.PI / 2}>
-        <circleGeometry args={[PLATE_R, 128]} />
-        <meshStandardMaterial color="#9c7b46" metalness={0.6} roughness={0.45} />
-      </mesh>
-      <mesh position={[0, 0.7, 0]}>
-        <cylinderGeometry args={[PLATE_R + 0.8, PLATE_R + 0.8, 1.4, 128, 1, true]} />
-        <meshStandardMaterial color="#b08d57" metalness={0.6} roughness={0.4} side={2} />
+      <Environment resolution={64} frames={1}>
+        <Lightformer form="rect" intensity={1.4} position={[-4, 6, 3]} scale={[8, 3, 1]} color="#ffd6a0" />
+        <Lightformer form="rect" intensity={0.4} position={[5, 2, -4]} scale={[6, 4, 1]} />
+      </Environment>
+      <Plate textureSize={2048} />
+      <Gearworks />
+      <Rete labels={familyLabels} textureSize={2048} />
+      <mesh position={[0, 0.55, 0]}>
+        <cylinderGeometry args={[PLATE_R + 0.02, PLATE_R + 0.02, 1.4, 160, 1, true]} />
+        <meshStandardMaterial color="#b08d57" metalness={1} roughness={0.5} side={2} />
       </mesh>
       <Placeholders />
       <CameraRig />

@@ -24,7 +24,7 @@ function publish(p: number) {
  * canvas survives every navigation. Owns smooth scrolling (Lenis, driven by
  * the GSAP ticker) and the master timeline.
  */
-export function StageRuntime() {
+export function StageRuntime({ familyLabels }: { familyLabels: string[] }) {
   const mode = useStage((s) => s.mode);
   const target = useStage((s) => s.target);
   const ready = useStage((s) => s.ready);
@@ -95,7 +95,7 @@ export function StageRuntime() {
         gl={{ antialias: true, powerPreference: "high-performance" }}
         onCreated={() => requestAnimationFrame(() => requestAnimationFrame(() => stageStore.setState({ ready: true })))}
       >
-        <Scene />
+        <Scene familyLabels={familyLabels} />
       </Canvas>
       {debug && <DebugOverlay />}
     </div>

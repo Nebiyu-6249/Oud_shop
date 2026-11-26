@@ -47,6 +47,7 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
   const locale = await rootParams.locale();
   if (!hasLocale(routing.locales, locale)) notFound();
   const t = await getTranslations("Site");
+  const tFamily = await getTranslations("Family");
   const grade = await getGradeMap();
 
   return (
@@ -65,7 +66,7 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
         {/* Client components get only the messages they need; none yet. */}
         <NextIntlClientProvider messages={{}}>
           {/* the persistent 3D stage: fixed behind everything, never remounted */}
-          <StageHost />
+          <StageHost familyLabels={[tFamily("FLORAL"), tFamily("AMBER"), tFamily("WOODY"), tFamily("FRESH")]} />
           <Grade palettes={grade.palettes} fragranceRealm={grade.fragranceRealm}>
             <SiteHeader />
             <div className="flex-1">{children}</div>
