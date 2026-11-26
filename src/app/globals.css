@@ -149,6 +149,10 @@ html[data-stage="ready"] .stage-poster {
 .grade[data-through] {
   background: transparent;
 }
+/* on the home page the grade follows the scroll exactly, so it must not lag behind it */
+.grade[data-home] {
+  transition: none;
+}
 .grade[data-through] main:not([data-stage-window]) {
   background: color-mix(in srgb, var(--realm-base) 90%, transparent);
 }

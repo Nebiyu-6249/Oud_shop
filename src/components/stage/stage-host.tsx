@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "@/i18n/navigation";
 import { REALM_LABEL } from "@/lib/sequence";
 import { type StageMode, stageStore } from "@/lib/stage-store";
+import type { Palette } from "@/lib/palette";
 import { useReducedMotion } from "@/components/astrolabe/use-reduced-motion";
 
 const StageRuntime = dynamic(() => import("./stage-runtime").then((m) => m.StageRuntime), { ssr: false });
@@ -26,7 +27,7 @@ function webglAvailable() {
  * chunk) only after the visitor first interacts: well after the hero text has
  * painted, and never on a page nobody is using. With ?debug it loads at once.
  */
-export function StageHost({ familyLabels }: { familyLabels: string[] }) {
+export function StageHost({ familyLabels, realmPalettes }: { familyLabels: string[]; realmPalettes: Record<string, Palette> }) {
   const pathname = usePathname();
   const reduced = useReducedMotion();
   const [load, setLoad] = useState(false);
@@ -48,8 +49,13 @@ export function StageHost({ familyLabels }: { familyLabels: string[] }) {
 
   useEffect(() => {
     if (!webglAvailable()) return;
-    const debug = new URLSearchParams(window.location.search).has("debug");
+    const params = new URLSearchParams(window.location.search);
+    const debug = params.has("debug");
     stageStore.setState({ debug });
+    // ?debug&quality=0..3 pins a quality level, for measuring each step on a real device
+    const q = Number(params.get("quality"));
+    if (debug && params.get("post") === "0") stageStore.setState({ postOff: true });
+    if (debug && params.has("quality") && q >= 0 && q <= 3) stageStore.setState({ quality: q as 0 | 1 | 2 | 3, qualityPinned: true });
     const start = () => {
       for (const e of INTERACTIONS) window.removeEventListener(e, start);
       stageStore.setState({ live: true });
@@ -65,5 +71,5 @@ export function StageHost({ familyLabels }: { familyLabels: string[] }) {
     };
   }, []);
 
-  return load ? <StageRuntime familyLabels={familyLabels} /> : null;
+  return load ? <StageRuntime familyLabels={familyLabels} realmPalettes={realmPalettes} /> : null;
 }

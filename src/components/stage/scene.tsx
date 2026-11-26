@@ -1,7 +1,15 @@
 "use client";
 
 import { useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import * as THREE from "three";
+import { paletteAt } from "@/lib/grade";
+import type { Palette } from "@/lib/palette";
+import type { BeatLabel } from "@/lib/sequence";
+import { useStage } from "@/lib/stage-store";
+import { Dust } from "./parts/dust";
+import { Lamp } from "./parts/lamp";
+import { Post } from "./post";
 import { Environment, Lightformer } from "@react-three/drei";
 import { cameraAt } from "@/lib/choreography";
 import { Ember } from "./parts/stations/ember";
@@ -45,17 +53,56 @@ function CameraRig() {
   return null;
 }
 
-export function Scene({ familyLabels }: { familyLabels: string[] }) {
+/** Fog and background follow the grade, so each realm's air has its own colour. */
+function Atmosphere({ palettes }: { palettes: Record<BeatLabel, Palette> }) {
+  const fog = useRef<THREE.Fog>(null);
+  const bg = useRef<THREE.Color>(null);
+  useFrame(() => {
+    const base = paletteAt(stageStore.getState().progress, palettes).base;
+    fog.current?.color.set(base);
+    bg.current?.set(base);
+  });
   return (
     <>
-      <color attach="background" args={["#0d0a07"]} />
-      <fog attach="fog" args={["#0d0a07", 18, 90]} />
-      <ambientLight intensity={0.35} />
-      <directionalLight position={[-6, 10, 4]} intensity={2.2} />
-      <Environment resolution={64} frames={1}>
-        <Lightformer form="rect" intensity={1.4} position={[-4, 6, 3]} scale={[8, 3, 1]} color="#ffd6a0" />
-        <Lightformer form="rect" intensity={0.4} position={[5, 2, -4]} scale={[6, 4, 1]} />
+      <color ref={bg} attach="background" args={["#0d0a07"]} />
+      <fog ref={fog} attach="fog" args={["#0d0a07", 16, 85]} />
+    </>
+  );
+}
+
+/**
+ * Ambient life (smoke, embers, dust, grain) needs frames even when progress
+ * is still. Only once the visitor has interacted, never under reduced motion,
+ * and never while the stage is hidden.
+ */
+function AmbientLoop() {
+  const invalidate = useThree((s) => s.invalidate);
+  useFrame(() => {
+    const s = stageStore.getState();
+    if (s.live && !s.reduced && s.mode !== "hidden") invalidate();
+  });
+  useEffect(() => stageStore.subscribe((s, prev) => s.live !== prev.live && invalidate()), [invalidate]);
+  return null;
+}
+
+export function Scene({ familyLabels, palettes }: { familyLabels: string[]; palettes: Record<BeatLabel, Palette> }) {
+  const quality = useStage((s) => s.quality);
+  const postOff = useStage((s) => s.postOff);
+  return (
+    <>
+      <Atmosphere palettes={palettes} />
+      {/*
+        What the brass reflects. Metal has no diffuse colour, so without a
+        reflection it reads black. The bright reflector stands where the
+        lantern hangs, warm like it: the lamp seen in the metal, not a second
+        light. A faint one opposite keeps shadowed faces from going flat.
+      */}
+      <Environment resolution={64} frames={1} environmentIntensity={0.9}>
+        <Lightformer form="circle" intensity={3} position={[-1.2, 4, 1.5]} scale={2.2} color="#ffc68c" />
+        <Lightformer form="rect" intensity={0.5} position={[-4, 3, 3]} scale={[8, 3, 1]} color="#ffd6a0" />
+        <Lightformer form="rect" intensity={0.15} position={[5, 1, -4]} scale={[6, 3, 1]} />
       </Environment>
+      <Lamp shadows={quality >= 1} />
       <Plate textureSize={2048} />
       <Gearworks />
       <Rete labels={familyLabels} textureSize={2048} />
@@ -64,8 +111,11 @@ export function Scene({ familyLabels }: { familyLabels: string[] }) {
       <Florals />
       <Ember />
       <Woods />
+      {quality >= 2 && <Dust />}
+      {!postOff && <Post tiltShift={quality >= 3} />}
       <CameraRig />
       <Invalidator />
+      <AmbientLoop />
     </>
   );
 }

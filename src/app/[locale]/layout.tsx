@@ -66,7 +66,10 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
         {/* Client components get only the messages they need; none yet. */}
         <NextIntlClientProvider messages={{}}>
           {/* the persistent 3D stage: fixed behind everything, never remounted */}
-          <StageHost familyLabels={[tFamily("FLORAL"), tFamily("AMBER"), tFamily("WOODY"), tFamily("FRESH")]} />
+          <StageHost
+            familyLabels={[tFamily("FLORAL"), tFamily("AMBER"), tFamily("WOODY"), tFamily("FRESH")]}
+            realmPalettes={grade.palettes}
+          />
           <Grade palettes={grade.palettes} fragranceRealm={grade.fragranceRealm}>
             <SiteHeader />
             <div className="flex-1">{children}</div>

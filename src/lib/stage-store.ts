@@ -21,6 +21,10 @@ export type StageState = {
   target: BeatLabel;
   /** 3 full, 2 no tilt-shift, 1 no dust, 0 no shadows. */
   quality: 0 | 1 | 2 | 3;
+  /** Set by ?debug&quality=N: the performance monitor leaves it alone. */
+  qualityPinned: boolean;
+  /** ?debug&post=0 renders without the post-processing chain, for comparison. */
+  postOff: boolean;
   reduced: boolean;
   debug: boolean;
   /** The runtime chunk has loaded and the first frame is on screen. */
@@ -36,6 +40,8 @@ export const stageStore = createStore<StageState>()(() => ({
   mode: "hidden",
   target: "ascent",
   quality: 3,
+  qualityPinned: false,
+  postOff: false,
   reduced: false,
   debug: false,
   ready: false,

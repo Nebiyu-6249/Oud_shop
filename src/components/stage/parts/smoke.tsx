@@ -36,50 +36,57 @@ void main() {
   float t = uTime * 0.12;
   vec2 q = vec2(fbm(p + vec2(0.0, -t)), fbm(p + vec2(5.2, 1.3 - t)));
   float d = fbm(p + 3.0 * q + vec2(0.0, -t * 2.0));
-  float density = smoothstep(0.4, 0.9, d);
+  float density = smoothstep(0.3, 0.85, d);
   // how much smoke has risen so far: the column grows upward with uAmount
   float reach = smoothstep(uAmount * 1.05, uAmount * 1.05 - 0.25, vUv.y);
-  float edge = 1.0 - smoothstep(0.25, 0.5, abs(vUv.x - 0.5));
-  float a = density * reach * edge * (1.0 - vUv.y * 0.6) * 0.55;
+  // one column that sways and widens as it climbs, fading softly at its sides
+  float centre = 0.5 + 0.07 * sin(vUv.y * 5.0 + t * 3.0) * vUv.y;
+  float halfWidth = 0.08 + 0.22 * vUv.y;
+  float edge = exp(-pow((vUv.x - centre) / halfWidth, 2.0));
+  float top = 1.0 - smoothstep(0.7, 0.98, vUv.y);
+  float a = density * reach * edge * top * (1.0 - vUv.y * 0.5) * 0.55;
   gl_FragColor = vec4(uColor, a);
 }`;
 
 /**
- * A column of censer smoke: two crossed planes so it reads from any side.
- * `amount` (0..1, from progress) sets how far it has risen; ambient time
- * only stirs it.
+ * A column of censer smoke: one plane that turns about its vertical axis to
+ * face the camera, so it always reads as a single soft column. `amount`
+ * (0..1, from progress) sets how far it has risen; ambient time only stirs it.
  */
 export function Smoke({ height = 1.6, width = 0.9, color = "#b8ab98", amount }: { height?: number; width?: number; color?: string; amount: () => number }) {
   const mat = useRef<THREE.ShaderMaterial>(null);
+  const group = useRef<THREE.Group>(null);
   const uniforms = useMemo(
     () => ({ uTime: { value: 0 }, uAmount: { value: 0 }, uColor: { value: new THREE.Color(color) } }),
     [color],
   );
-  useFrame(({ clock }) => {
-    if (!mat.current) return;
-    mat.current.uniforms.uTime.value = ambientTime(clock.getElapsedTime());
-    mat.current.uniforms.uAmount.value = amount();
+  const world = useMemo(() => new THREE.Vector3(), []);
+  useFrame(({ clock, camera }) => {
+    if (mat.current) {
+      mat.current.uniforms.uTime.value = ambientTime(clock.getElapsedTime());
+      mat.current.uniforms.uAmount.value = amount();
+    }
+    const g = group.current;
+    if (g?.parent) {
+      // face the camera about the vertical only, in the parent's frame
+      g.parent.getWorldPosition(world);
+      const local = g.parent.worldToLocal(camera.position.clone());
+      g.rotation.y = Math.atan2(local.x - g.position.x, local.z - g.position.z);
+    }
   });
-  const material = (
-    <shaderMaterial
-      ref={mat}
-      vertexShader={VERT}
-      fragmentShader={FRAG}
-      uniforms={uniforms}
-      transparent
-      depthWrite={false}
-      side={THREE.DoubleSide}
-    />
-  );
   return (
-    <group position={[0, height / 2, 0]}>
+    <group ref={group} position={[0, height / 2, 0]}>
       <mesh renderOrder={2}>
         <planeGeometry args={[width, height]} />
-        {material}
-      </mesh>
-      <mesh rotation-y={Math.PI / 2} renderOrder={2}>
-        <planeGeometry args={[width, height]} />
-        <shaderMaterial vertexShader={VERT} fragmentShader={FRAG} uniforms={uniforms} transparent depthWrite={false} side={THREE.DoubleSide} />
+        <shaderMaterial
+          ref={mat}
+          vertexShader={VERT}
+          fragmentShader={FRAG}
+          uniforms={uniforms}
+          transparent
+          depthWrite={false}
+          side={THREE.DoubleSide}
+        />
       </mesh>
     </group>
   );

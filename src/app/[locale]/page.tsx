@@ -42,7 +42,7 @@ export default async function HomePage() {
   const beatData = (label: string) => ({ "data-a": WINDOW[label][0], "data-b": WINDOW[label][1] });
 
   return (
-    <main id="main">
+    <main id="main" data-stage-window>
       {/*
         The title sequence: 700vh of scroll scrub the master timeline. The 3D
         stage is fixed behind this section; the overlays below are real text,
@@ -87,7 +87,7 @@ export default async function HomePage() {
                 data-beat={label}
                 {...beatData(label)}
                 className={`beat absolute inset-0 flex ${label === "ascent" ? "items-end justify-center pb-[12vh]" : "items-end pb-[10vh]"}`}
-                style={{ ...beatStyle(label), ...(realm ? paletteStyle(realm.palette) : {}) }}
+                style={beatStyle(label)}
               >
                 <div
                   className={`mx-auto w-full px-5 sm:px-10 ${label === "ascent" ? "max-w-xl border border-realm-accent/40 bg-night/85 py-8 text-center" : "max-w-7xl"}`}

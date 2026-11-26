@@ -5,7 +5,9 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 import Lenis from "lenis";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import { beatPalettes, paletteAt } from "@/lib/grade";
+import { type Palette, paletteStyle } from "@/lib/palette";
 import { FOV } from "@/lib/choreography";
 import { createMasterTimeline, labelAt } from "@/lib/sequence";
 import { stageStore, useStage } from "@/lib/stage-store";
@@ -17,6 +19,21 @@ gsap.registerPlugin(ScrollTrigger, SplitText);
 
 /** The overlay timeline for the current home page, if any; scrubbed with the master. */
 let overlay: gsap.core.Timeline | null = null;
+/** The grade to paint on the DOM while the home sequence scrubs; null elsewhere. */
+let domGrade: Record<string, Palette> | null = null;
+
+function paintGrade(p: number) {
+  if (!domGrade) return;
+  const style = paletteStyle(paletteAt(p, domGrade as never));
+  for (const [k, v] of Object.entries(style)) document.documentElement.style.setProperty(k, v);
+}
+
+function clearGrade() {
+  for (const k of ["--realm-base", "--realm-surface", "--realm-accent", "--realm-ink", "--realm-glow"]) {
+    document.documentElement.style.removeProperty(k);
+  }
+}
+
 /** The home page's beat overlays; the ones whose window holds progress are active. */
 let beats: HTMLElement[] = [];
 
@@ -32,6 +49,7 @@ function publish(p: number) {
   stageStore.setState({ progress: p });
   overlay?.progress(p);
   markActive(p);
+  paintGrade(p);
   document.documentElement.style.setProperty("--p", p.toFixed(5));
 }
 
@@ -40,7 +58,8 @@ function publish(p: number) {
  * canvas survives every navigation. Owns smooth scrolling (Lenis, driven by
  * the GSAP ticker) and the master timeline.
  */
-export function StageRuntime({ familyLabels }: { familyLabels: string[] }) {
+export function StageRuntime({ familyLabels, realmPalettes }: { familyLabels: string[]; realmPalettes: Record<string, Palette> }) {
+  const palettes = useMemo(() => beatPalettes(realmPalettes), [realmPalettes]);
   const mode = useStage((s) => s.mode);
   const target = useStage((s) => s.target);
   const ready = useStage((s) => s.ready);
@@ -133,8 +152,12 @@ export function StageRuntime({ familyLabels }: { familyLabels: string[] }) {
       const end = start + el.offsetHeight - window.innerHeight;
       const scrolled = Math.min(1, Math.max(0, (window.scrollY - start) / Math.max(1, end - start)));
       beats = [...el.querySelectorAll<HTMLElement>("[data-beat]")];
+      domGrade = palettes;
+      paintGrade(timeline.progress());
       cleanups.push(() => {
         beats = [];
+        domGrade = null;
+        clearGrade();
       });
       travel(scrolled, () => {
         if (!reduced()) {
@@ -162,7 +185,7 @@ export function StageRuntime({ familyLabels }: { familyLabels: string[] }) {
       trigger?.kill();
       cleanups.forEach((c) => c());
     };
-  }, [mode, target]);
+  }, [mode, target, palettes]);
 
   return (
     <>
@@ -175,12 +198,13 @@ export function StageRuntime({ familyLabels }: { familyLabels: string[] }) {
     >
       <Canvas
         frameloop={mode === "hidden" ? "never" : "demand"}
+        shadows
         dpr={[1, 1.5]}
         camera={{ fov: FOV, near: 0.1, far: 200, position: [0, 52, 0.8] }}
         gl={{ antialias: true, powerPreference: "high-performance" }}
         onCreated={() => requestAnimationFrame(() => requestAnimationFrame(() => stageStore.setState({ ready: true })))}
       >
-        <Scene familyLabels={familyLabels} />
+        <Scene familyLabels={familyLabels} palettes={palettes} />
       </Canvas>
     </div>
     </>
