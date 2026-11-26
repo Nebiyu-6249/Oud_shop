@@ -21,11 +21,20 @@ npm run dev
 | `npm test` | Vitest unit tests, plus order and webhook tests against the local database when `DATABASE_URL` is set |
 | `npm run check:content` | fails on emoji or blocklisted terms in `src/`, `prisma/` and `messages/` |
 
-## Netlify
+## Deploying
 
-Set `DATABASE_URL` (Neon pooled connection string), `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` and `NEXT_PUBLIC_SITE_URL` in the site's environment variables. The build command is in `netlify.toml`.
+Vercel and Netlify both run `npm run build:deploy` (Vercel through the `vercel-build` script, Netlify through `netlify.toml`): the content check, the Prisma client, `prisma migrate deploy`, the idempotent seed, then `next build`. The build prerenders the catalogue from the database, so `DATABASE_URL` must be set for the build as well as at runtime.
 
-Catalogue pages are prerendered from the database at build time. Stock on the fragrance page is read per request, which runs Prisma inside a Netlify Function.
+Environment variables:
+
+| Variable | Needed | Notes |
+| --- | --- | --- |
+| `DATABASE_URL` | yes | Neon pooled connection string (the `-pooler` host) |
+| `DIRECT_URL` | recommended | Neon direct connection string, used only for migrations; falls back to `DATABASE_URL` |
+| `NEXT_PUBLIC_SITE_URL` | optional | public origin for canonical links; on Vercel it falls back to the production domain |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | for payments | test mode only; without them the cart says payments are not set up |
+
+Catalogue pages are prerendered; stock on the fragrance page, checkout and the Stripe webhook run per request in serverless functions.
 
 ## The astrolabe
 

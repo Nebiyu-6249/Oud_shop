@@ -12,6 +12,14 @@ import { MotionLayer } from "@/components/motion/motion-layer";
 import { StageHost } from "@/components/stage/stage-host";
 import "../globals.css";
 
+/** The public origin: set explicitly, or the production domain Vercel provides. */
+function siteUrl(): URL | undefined {
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL;
+  if (explicit) return new URL(explicit);
+  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  return vercel ? new URL(`https://${vercel}`) : undefined;
+}
+
 const cinzel = Cinzel({ subsets: ["latin"], variable: "--font-cinzel", display: "swap" });
 const garamond = EB_Garamond({ subsets: ["latin"], variable: "--font-garamond", display: "swap" });
 const reemKufi = Reem_Kufi({
@@ -37,9 +45,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: { default: t("name"), template: `%s | ${t("name")}` },
     description: t("tagline"),
-    metadataBase: process.env.NEXT_PUBLIC_SITE_URL
-      ? new URL(process.env.NEXT_PUBLIC_SITE_URL)
-      : undefined,
+    metadataBase: siteUrl(),
   };
 }
 
