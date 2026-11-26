@@ -16,7 +16,7 @@ const isBasin = (i: number, j: number) => (i === 2 || i === 3) && (j === 2 || j 
 const tileCentre = (i: number) => -SIZE / 2 + T / 2 + i * T;
 
 /** A panel with a horseshoe arch cut through it: the arc closes in a little past the semicircle. */
-function archGeometry(w: number, h: number) {
+function archGeometry(w: number, h: number, depth = 0.07) {
   const s = new THREE.Shape([
     new THREE.Vector2(-w / 2, 0),
     new THREE.Vector2(w / 2, 0),
@@ -37,8 +37,8 @@ function archGeometry(w: number, h: number) {
   hole.lineTo(r * Math.cos(a0), foot);
   hole.lineTo(r * Math.cos(a1), foot);
   s.holes.push(hole);
-  const g = new THREE.ExtrudeGeometry(s, { depth: 0.07, bevelEnabled: true, bevelThickness: 0.008, bevelSize: 0.008, bevelSegments: 1, curveSegments: 24 });
-  g.translate(0, 0, -0.035);
+  const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: true, bevelThickness: 0.008, bevelSize: 0.008, bevelSegments: 1, curveSegments: 24 });
+  g.translate(0, 0, -depth / 2);
   return g;
 }
 
@@ -51,11 +51,13 @@ function petalGeometry() {
   return new THREE.ShapeGeometry(s, 12);
 }
 
+/** Side arches stand on low curbs, so folded they lie over the back arches, not through them. */
+const CURB = 0.095;
 type Arch = { pos: [number, number, number]; yaw: number; delay: number };
 const ARCHES: Arch[] = [
-  ...[-0.8, 0, 0.8].map((x, i) => ({ pos: [x, 0, -SIZE / 2] as [number, number, number], yaw: 0, delay: 1 + Math.abs(i - 1) })),
-  ...[-0.6, 0.6].map((z) => ({ pos: [-SIZE / 2, 0, z] as [number, number, number], yaw: Math.PI / 2, delay: 3 })),
-  ...[-0.6, 0.6].map((z) => ({ pos: [SIZE / 2, 0, z] as [number, number, number], yaw: -Math.PI / 2, delay: 3 })),
+  ...[-0.8, 0, 0.8].map((x, i) => ({ pos: [x, 0.004, -SIZE / 2] as [number, number, number], yaw: 0, delay: 1 + Math.abs(i - 1) })),
+  ...[-0.6, 0.6].map((z) => ({ pos: [-SIZE / 2 - 0.05, CURB, z] as [number, number, number], yaw: Math.PI / 2, delay: 3 })),
+  ...[-0.6, 0.6].map((z) => ({ pos: [SIZE / 2 + 0.05, CURB, z] as [number, number, number], yaw: -Math.PI / 2, delay: 3 })),
 ];
 
 /**
@@ -72,7 +74,16 @@ export function Florals() {
   const bloom = useRef<THREE.Group>(null);
   const petals = useRef<(THREE.Group | null)[]>([]);
 
-  const geo = useMemo(() => ({ tile: new THREE.BoxGeometry(T - 0.012, 0.04, T - 0.012), arch: archGeometry(0.76, 1.0), petal: petalGeometry() }), []);
+  const geo = useMemo(
+    () => ({
+      tile: new THREE.BoxGeometry(T - 0.012, 0.04, T - 0.012),
+      arch: archGeometry(0.76, 1.0),
+      // a brass skin on each arch's back: folded face down, the garden reads as brass
+      archBack: archGeometry(0.76, 1.0, 0.012),
+      petal: petalGeometry(),
+    }),
+    [],
+  );
   // box faces: +x, -x, +y (engraved brass, the plate's face), -y (glazed tile), +z, -z
   const tileMats = useMemo(() => {
     const b = brassOnce("#b58f55");
@@ -118,11 +129,11 @@ export function Florals() {
     // the camshafts beneath turn with the drive whenever the floor is moving
     const drive = driveAngle(p);
     cams.current.forEach((c) => c && (c.rotation.x = drive * 0.5));
-    // arches: each unfolds from flat (outside the courtyard) to upright, one after another
+    // arches: folded face down over the courtyard, each swings up to stand, one after another
     const rise = span(s, 0.36, 0.78);
     ARCHES.forEach((a, i) => {
       const g = arches.current[i];
-      if (g) g.rotation.x = -(Math.PI / 2) * (1 - smoother(stage(rise, a.delay - 1, 3, 0.4)));
+      if (g) g.rotation.x = (Math.PI / 2) * (1 - smoother(stage(rise, a.delay - 1, 3, 0.4)));
     });
     // water fills the basin; the bloom floats up with it and opens
     if (waterRef.current) {
@@ -191,8 +202,14 @@ export function Florals() {
         <group key={i} position={a.pos} rotation-y={a.yaw}>
           <group ref={(el) => void (arches.current[i] = el)}>
             <mesh geometry={geo.arch} material={mats.carved} castShadow receiveShadow />
+            <mesh geometry={geo.archBack} material={mats.brass} position={[0, 0, -0.045]} castShadow />
           </group>
           <Pin at={[0, 0.01, 0]} axis="x" length={0.8} r={0.014} />
+          {a.pos[1] > 0.01 && (
+            <mesh position={[0, -CURB / 2, 0]} material={mats.stone} castShadow receiveShadow>
+              <boxGeometry args={[0.82, CURB, 0.1]} />
+            </mesh>
+          )}
         </group>
       ))}
     </StationFrame>

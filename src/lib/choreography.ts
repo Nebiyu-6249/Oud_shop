@@ -46,8 +46,8 @@ function keys(): Key[] {
   const swingAt = new Vector3(-0.35, 1.35, -0.25);
   return [
     // Rim: tight on the engraved outer band, tracking along it
-    { label: "rim", cam: polarY(160, 8.35, 0.85), look: polarY(176, 10, 0.72) },
-    { cam: polarY(188, 8.35, 0.95), look: polarY(204, 10, 0.78) },
+    { label: "rim", cam: polarY(158, 7.75, 0.8), look: polarY(176, 10, 0.62) },
+    { cam: polarY(186, 7.75, 0.95), look: polarY(204, 10, 0.7) },
     // Descent: up over the rete, tilting down through its openings
     { cam: polarY(204, 7.4, 3.8), look: polarY(212, 3.2, 0) },
     { label: "descent", cam: polarY(222, 2.4, 0.95), look: polarY(236, 4.4, -0.35) },
@@ -131,7 +131,20 @@ export function structureState(id: StationId, p: number): number {
 /** The master drive shaft: turns steadily with progress, 14 turns over the sequence. */
 export const driveAngle = (p: number) => p * Math.PI * 2 * 14;
 
-/** The rete's slow turn on its pivot during the sequence, settling at zero for the finder. */
+/**
+ * The rete's turn on its pivot, as a plate (drawing) angle: clockwise seen
+ * from above. During the sequence it rests a little turned; in the Ascent it
+ * settles where the finder's instrument idles, Amber under the index.
+ */
+export const RETE_FINDER = deg(-90);
 export function reteAngle(p: number): number {
-  return deg(38) * (1 - smoother(span(p, 0.86, 0.98)));
+  const settle = smoother(span(p, 0.86, 0.98));
+  return deg(38) * (1 - settle) + RETE_FINDER * settle;
 }
+
+/** The engraved outer band turns slowly under the camera during the Rim. */
+export const rimAngle = (p: number) => deg(-24) * smoother(span(p, 0, 0.16));
+
+/** The rule rests clear of the camera's descent, then swings to the finder's idle angle. */
+export const RULE_FINDER = deg(35);
+export const ruleAngle = (p: number) => deg(120) + (RULE_FINDER - deg(120)) * smoother(span(p, 0.88, 0.99));

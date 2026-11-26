@@ -3,19 +3,25 @@
 import { Canvas } from "@react-three/fiber";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { SplitText } from "gsap/SplitText";
 import Lenis from "lenis";
 import { useEffect, useRef } from "react";
 import { FOV } from "@/lib/choreography";
 import { createMasterTimeline, labelAt } from "@/lib/sequence";
 import { stageStore, useStage } from "@/lib/stage-store";
 import { DebugOverlay } from "./debug-overlay";
+import { attachKeys, attachSnap, buildOverlayTimeline } from "./sequence-controls";
 import { Scene } from "./scene";
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, SplitText);
+
+/** The overlay timeline for the current home page, if any; scrubbed with the master. */
+let overlay: gsap.core.Timeline | null = null;
 
 /** Publishes progress to the store (for the canvas) and to CSS (for DOM overlays). */
 function publish(p: number) {
   stageStore.setState({ progress: p });
+  overlay?.progress(p);
   document.documentElement.style.setProperty("--p", p.toFixed(5));
 }
 
@@ -30,6 +36,7 @@ export function StageRuntime({ familyLabels }: { familyLabels: string[] }) {
   const ready = useStage((s) => s.ready);
   const debug = useStage((s) => s.debug);
   const tl = useRef<gsap.core.Timeline | null>(null);
+  const lenisRef = useRef<Lenis | null>(null);
 
   // Let the DOM know when the first frame is on screen (the poster fades).
   useEffect(() => {
@@ -39,6 +46,7 @@ export function StageRuntime({ familyLabels }: { familyLabels: string[] }) {
   // Smooth scroll and the master timeline, once for the life of the page.
   useEffect(() => {
     const lenis = new Lenis({ autoRaf: false, lerp: 0.09 });
+    lenisRef.current = lenis;
     const raf = (time: number) => lenis.raf(time * 1000);
     lenis.on("scroll", ScrollTrigger.update);
     gsap.ticker.add(raf);
@@ -61,11 +69,22 @@ export function StageRuntime({ familyLabels }: { familyLabels: string[] }) {
     }
     let trigger: ScrollTrigger | undefined;
     let raf = 0;
+    const cleanups: (() => void)[] = [];
+    const reduced = () => stageStore.getState().reduced;
     const attach = () => {
       const el = document.getElementById("sequence");
-      if (!el) {
+      const lenis = lenisRef.current;
+      if (!el || !lenis) {
         raf = requestAnimationFrame(attach);
         return;
+      }
+      if (!reduced()) {
+        const o = buildOverlayTimeline(gsap, SplitText, el);
+        overlay = o.timeline;
+        cleanups.push(() => {
+          overlay = null;
+          o.revert();
+        });
       }
       trigger = ScrollTrigger.create({
         trigger: el,
@@ -74,11 +93,14 @@ export function StageRuntime({ familyLabels }: { familyLabels: string[] }) {
         animation: timeline,
         scrub: true,
       });
+      overlay?.progress(timeline.progress());
+      cleanups.push(attachSnap(lenis, trigger, reduced), attachKeys(lenis, trigger, reduced));
     };
     attach();
     return () => {
       cancelAnimationFrame(raf);
       trigger?.kill();
+      for (const c of cleanups) c();
     };
   }, [mode, target]);
 

@@ -111,6 +111,7 @@ export function Rete({ labels, textureSize }: { labels: string[]; textureSize: n
 
   const ref = useRef<THREE.Mesh>(null);
   useFrame(() => {
+    // a plate angle runs clockwise seen from above; three.js turns counter-clockwise
     if (ref.current) ref.current.rotation.y = -reteAngle(stageStore.getState().progress);
   });
 

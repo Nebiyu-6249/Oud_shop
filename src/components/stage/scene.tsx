@@ -3,7 +3,7 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo } from "react";
 import { Environment, Lightformer } from "@react-three/drei";
-import { cameraAt, PLATE_R } from "@/lib/choreography";
+import { cameraAt } from "@/lib/choreography";
 import { Ember } from "./parts/stations/ember";
 import { Florals } from "./parts/stations/florals";
 import { Resins } from "./parts/stations/resins";
@@ -11,6 +11,7 @@ import { Woods } from "./parts/stations/woods";
 import { Gearworks } from "./parts/gears";
 import { Plate } from "./parts/plate";
 import { Rete } from "./parts/rete";
+import { Rim } from "./parts/rim";
 import { stageStore } from "@/lib/stage-store";
 import { frameStats } from "./frame-stats";
 
@@ -58,10 +59,7 @@ export function Scene({ familyLabels }: { familyLabels: string[] }) {
       <Plate textureSize={2048} />
       <Gearworks />
       <Rete labels={familyLabels} textureSize={2048} />
-      <mesh position={[0, 0.55, 0]}>
-        <cylinderGeometry args={[PLATE_R + 0.02, PLATE_R + 0.02, 1.4, 160, 1, true]} />
-        <meshStandardMaterial color="#b08d57" metalness={1} roughness={0.5} side={2} />
-      </mesh>
+      <Rim textureWidth={4096} />
       <Resins />
       <Florals />
       <Ember />

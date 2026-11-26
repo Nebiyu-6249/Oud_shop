@@ -39,6 +39,7 @@ export default async function HomePage() {
 
   const beatStyle = (label: string) =>
     ({ "--a": WINDOW[label][0], "--b": WINDOW[label][1] }) as CSSProperties;
+  const beatData = (label: string) => ({ "data-a": WINDOW[label][0], "data-b": WINDOW[label][1] });
 
   return (
     <main id="main">
@@ -60,7 +61,7 @@ export default async function HomePage() {
           {BEATS.map(({ label }) => {
             if (label === "rim") {
               return (
-                <div key={label} data-beat={label} className="beat absolute inset-0 flex items-center" style={beatStyle(label)}>
+                <div key={label} data-beat={label} {...beatData(label)} className="beat absolute inset-0 flex items-center" style={beatStyle(label)}>
                   <div className="mx-auto w-full max-w-7xl px-5 sm:px-10">
                     <div className="max-w-2xl">
                       <h1 className="font-display text-5xl leading-[1.05] sm:text-7xl">{t("heroTitle")}</h1>
@@ -84,12 +85,21 @@ export default async function HomePage() {
               <div
                 key={label}
                 data-beat={label}
+                {...beatData(label)}
                 className={`beat absolute inset-0 flex ${label === "ascent" ? "items-end justify-center pb-[12vh]" : "items-end pb-[10vh]"}`}
                 style={{ ...beatStyle(label), ...(realm ? paletteStyle(realm.palette) : {}) }}
               >
-                <div className={`mx-auto w-full max-w-7xl px-5 sm:px-10 ${label === "ascent" ? "text-center" : ""}`}>
-                  <h2 className="font-display text-4xl text-realm-accent sm:text-6xl">{title}</h2>
-                  {line && <p className="mt-4 max-w-xl text-lg leading-relaxed text-realm-ink/90 sm:text-xl">{line}</p>}
+                <div
+                  className={`mx-auto w-full px-5 sm:px-10 ${label === "ascent" ? "max-w-xl border border-realm-accent/40 bg-night/85 py-8 text-center" : "max-w-7xl"}`}
+                >
+                  <h2 data-engrave className="font-display text-4xl text-realm-accent sm:text-6xl">
+                    {title}
+                  </h2>
+                  {line && (
+                    <p data-engrave-line className="mt-4 max-w-xl text-lg leading-relaxed text-realm-ink/90 sm:text-xl">
+                      {line}
+                    </p>
+                  )}
                   {realm && (
                     <Link
                       href={`/realms/${realm.slug}`}

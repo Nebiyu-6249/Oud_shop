@@ -115,7 +115,7 @@ export const star8 = (c: P, r: number) => {
 // ---------------------------------------------------------------- mater
 
 /** The throne at the top, as cubic sections from the limb up to the apex. */
-function kursiRight(): P[] {
+export function kursiRight(): P[] {
   const segs: [P, P, P, P][] = [
     [[0.19, -0.838], [0.24, -0.9], [0.15, -0.93], [0.105, -0.925]],
     [[0.105, -0.925], [0.12, -0.96], [0.06, -0.99], [0.035, -0.965]],
