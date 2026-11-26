@@ -9,6 +9,7 @@ import { SiteHeader } from "@/components/site-header";
 import { Grade } from "@/components/realm/grade";
 import { getGradeMap } from "@/lib/catalog";
 import { MotionLayer } from "@/components/motion/motion-layer";
+import { StageHost } from "@/components/stage/stage-host";
 import "../globals.css";
 
 const cinzel = Cinzel({ subsets: ["latin"], variable: "--font-cinzel", display: "swap" });
@@ -63,6 +64,8 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
         </a>
         {/* Client components get only the messages they need; none yet. */}
         <NextIntlClientProvider messages={{}}>
+          {/* the persistent 3D stage: fixed behind everything, never remounted */}
+          <StageHost />
           <Grade palettes={grade.palettes} fragranceRealm={grade.fragranceRealm}>
             <SiteHeader />
             <div className="flex-1">{children}</div>

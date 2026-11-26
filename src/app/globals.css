@@ -113,6 +113,34 @@ body {
   }
 }
 
+/*
+ * Home sequence overlays: each is a pure function of scroll progress (--p,
+ * written by the stage as the master timeline scrubs), shown inside its own
+ * window [--a, --b] with short fades at either end. Before the stage loads
+ * --p is 0, so the opening beat shows and the rest stay hidden.
+ */
+.beat {
+  --fade: 45;
+  opacity: clamp(0, min((var(--p, 0) - var(--a)) * var(--fade), (var(--b) - var(--p, 0)) * var(--fade)), 1);
+  pointer-events: none;
+}
+.beat .beat-link {
+  pointer-events: auto;
+}
+
+/* The engraved poster fades once the 3D stage has drawn its first frame. */
+.stage-poster {
+  transition: opacity 0.9s;
+}
+html[data-stage="ready"] .stage-poster {
+  opacity: 0;
+}
+
+/* On the home page the layout is transparent so the fixed stage shows through. */
+.grade[data-home] {
+  background: transparent;
+}
+
 /* Once the WebGL instrument is on screen, the SVG one fades out beneath it. */
 .astrolabe-static {
   transition: opacity 0.7s;

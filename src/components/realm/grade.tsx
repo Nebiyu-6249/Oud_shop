@@ -27,8 +27,9 @@ export function Grade({
 
   return (
     <div
-      className="grade flex min-h-dvh flex-col"
+      className="grade relative z-[1] flex min-h-dvh flex-col"
       data-realm={realm ?? "house"}
+      data-home={pathname === "/" ? "" : undefined}
       style={palette ? (paletteStyle(palette) as CSSProperties) : undefined}
     >
       {children}

@@ -5,10 +5,9 @@ import * as rootParams from "next/root-params";
 import { Link } from "@/i18n/navigation";
 import { getRealms } from "@/lib/catalog";
 import { paletteStyle } from "@/lib/palette";
+import { BEATS, REALM_LABEL } from "@/lib/sequence";
 import { FragranceCard } from "@/components/realm/fragrance-card";
-import { RealmFrameTop } from "@/components/realm/frames";
 import { AstrolabeStatic } from "@/components/astrolabe/astrolabe-static";
-import { WebglUpgrade } from "@/components/astrolabe/webgl-upgrade";
 import { buildModel } from "@/components/astrolabe/model";
 import { getFinderData } from "@/lib/finder-data";
 import { alternates } from "@/i18n/alternates";
@@ -17,82 +16,121 @@ export async function generateMetadata(): Promise<Metadata> {
   return { alternates: alternates(await rootParams.locale()) };
 }
 
+/** Progress window in which a beat's overlay is shown, around its label. */
+const WINDOW: Record<string, [number, number]> = {
+  rim: [-1, 0.07],
+  descent: [0.15, 0.25],
+  resins: [0.28, 0.4],
+  florals: [0.43, 0.53],
+  ember: [0.6, 0.72],
+  woods: [0.76, 0.86],
+  ascent: [0.95, 2],
+};
+
+const firstSentence = (s: string) => s.split(/(?<=[.!?۔])\s/)[0];
+
 export default async function HomePage() {
   const locale = await rootParams.locale();
   const ar = locale === "ar";
   const t = await getTranslations("Home");
   const tFinder = await getTranslations("Finder");
   const [realms, { labels }] = await Promise.all([getRealms(), getFinderData(locale)]);
+  const realmFor = (label: string) => realms.find((r) => REALM_LABEL[r.slug] === label);
+
+  const beatStyle = (label: string) =>
+    ({ "--a": WINDOW[label][0], "--b": WINDOW[label][1] }) as CSSProperties;
 
   return (
     <main id="main">
-      <section className="mx-auto grid max-w-7xl items-center gap-10 overflow-x-clip px-5 pt-14 pb-20 sm:px-10 sm:pt-24 sm:pb-28 lg:grid-cols-[1.1fr_1fr]">
-        <div>
-          <h1 className="font-display text-5xl leading-[1.05] sm:text-7xl">{t("heroTitle")}</h1>
-          <p className="mt-8 max-w-2xl text-xl leading-relaxed text-realm-ink/85 sm:text-2xl">{t("heroBody")}</p>
-          <Link
-            href="/finder"
-            className="rule font-display mt-10 inline-block border px-6 py-3 text-lg tracking-[0.1em] text-realm-accent hover:border-realm-accent"
-          >
-            {tFinder("cta")}
-          </Link>
-        </div>
-        {/* A second way into the finder for pointer users; the button above is the accessible one. */}
-        <Link
-          href="/finder"
-          tabIndex={-1}
-          aria-hidden
-          className="relative mx-auto block aspect-square w-full max-w-[34rem]"
-        >
-          <span className="absolute inset-0 text-realm-accent">
-            <AstrolabeStatic model={buildModel(labels)} className="astrolabe-static absolute inset-0" />
-            <WebglUpgrade labels={labels} />
-          </span>
-        </Link>
-      </section>
+      {/*
+        The title sequence: 700vh of scroll scrub the master timeline. The 3D
+        stage is fixed behind this section; the overlays below are real text,
+        each shown while the camera holds on its beat.
+      */}
+      <section id="sequence" aria-label={t("sequenceLabel")} className="relative" style={{ height: "700vh" }}>
+        <div className="sticky top-0 h-dvh overflow-hidden">
+          {/* Until the stage loads: the engraved band, drawn as server-rendered line work. */}
+          <div aria-hidden className="stage-poster absolute inset-0 text-realm-accent">
+            <AstrolabeStatic
+              model={buildModel(labels)}
+              className="absolute top-[18%] start-[8%] aspect-square w-[220vmax] max-w-none opacity-60"
+            />
+          </div>
 
-      <section id="realms" aria-labelledby="realms-heading">
-        <h2 id="realms-heading" className="font-display mx-auto max-w-6xl px-5 pb-6 text-sm tracking-[0.25em] text-realm-accent uppercase sm:px-10">
-          {t("realmsHeading")}
-        </h2>
-        <ul>
-          {realms.map((r) => (
-            <li
-              key={r.slug}
-              style={paletteStyle(r.palette) as CSSProperties}
-              className="group relative bg-realm-base text-realm-ink"
-            >
-              <RealmFrameTop slug={r.slug} />
-              <div className="mx-auto grid max-w-6xl gap-4 px-5 py-12 sm:grid-cols-[1fr_1.4fr] sm:px-10">
-                <h3 className="font-display text-4xl text-realm-accent">
-                  {/* the link's hit area is stretched over the whole row */}
-                  <Link
-                    href={`/realms/${r.slug}`}
-                    className="after:absolute after:inset-0 group-hover:underline group-hover:underline-offset-8"
-                  >
-                    {ar ? r.nameAr : r.nameEn}
-                  </Link>
-                </h3>
-                <p data-reveal="lines" className="text-lg leading-relaxed text-realm-ink/85">
-                  {ar ? r.storyAr : r.storyEn}
-                </p>
+          {BEATS.map(({ label }) => {
+            if (label === "rim") {
+              return (
+                <div key={label} data-beat={label} className="beat absolute inset-0 flex items-center" style={beatStyle(label)}>
+                  <div className="mx-auto w-full max-w-7xl px-5 sm:px-10">
+                    <div className="max-w-2xl">
+                      <h1 className="font-display text-5xl leading-[1.05] sm:text-7xl">{t("heroTitle")}</h1>
+                      <p className="mt-8 text-xl leading-relaxed text-realm-ink/90 sm:text-2xl">{t("heroBody")}</p>
+                      <p className="mt-10 text-base text-realm-ink/70">{t("scrollHint")}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            const realm = realmFor(label);
+            const title =
+              label === "descent" ? t("descentTitle") : label === "ascent" ? t("ascentTitle") : ar ? realm!.nameAr : realm!.nameEn;
+            const line =
+              label === "descent"
+                ? t("descentLine")
+                : label === "ascent"
+                  ? null
+                  : firstSentence(ar ? realm!.storyAr : realm!.storyEn);
+            return (
+              <div
+                key={label}
+                data-beat={label}
+                className={`beat absolute inset-0 flex ${label === "ascent" ? "items-end justify-center pb-[12vh]" : "items-end pb-[10vh]"}`}
+                style={{ ...beatStyle(label), ...(realm ? paletteStyle(realm.palette) : {}) }}
+              >
+                <div className={`mx-auto w-full max-w-7xl px-5 sm:px-10 ${label === "ascent" ? "text-center" : ""}`}>
+                  <h2 className="font-display text-4xl text-realm-accent sm:text-6xl">{title}</h2>
+                  {line && <p className="mt-4 max-w-xl text-lg leading-relaxed text-realm-ink/90 sm:text-xl">{line}</p>}
+                  {realm && (
+                    <Link
+                      href={`/realms/${realm.slug}`}
+                      className="beat-link mt-6 inline-block text-base text-realm-accent underline underline-offset-4"
+                    >
+                      {t("visitRealm")}
+                    </Link>
+                  )}
+                  {label === "ascent" && (
+                    <Link
+                      href="/finder"
+                      className="beat-link rule font-display mt-8 inline-block border px-8 py-3 text-xl tracking-[0.1em] text-realm-accent hover:border-realm-accent"
+                    >
+                      {t("ascentCta")}
+                    </Link>
+                  )}
+                </div>
               </div>
-            </li>
-          ))}
-        </ul>
+            );
+          })}
+        </div>
       </section>
 
-      <section aria-labelledby="featured-heading" className="mx-auto max-w-6xl px-5 py-20 sm:px-10">
-        <h2 id="featured-heading" className="font-display mb-8 text-sm tracking-[0.25em] text-realm-accent uppercase">
-          {t("featuredHeading")}
-        </h2>
-        <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {realms.map((r) => (
-            <li key={r.slug} style={paletteStyle(r.palette) as CSSProperties} className="bg-realm-base text-realm-ink">
-              <FragranceCard f={r.fragrances[0]} locale={locale} />
-            </li>
-          ))}
-        </ul>
+      <section aria-labelledby="featured-heading" className="relative bg-night">
+        <div className="mx-auto max-w-6xl px-5 py-20 sm:px-10">
+          <h2 id="featured-heading" className="font-display mb-8 text-sm tracking-[0.25em] text-realm-accent uppercase">
+            {t("featuredHeading")}
+          </h2>
+          <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {realms.map((r) => (
+              <li key={r.slug} style={paletteStyle(r.palette) as CSSProperties} className="bg-realm-base text-realm-ink">
+                <FragranceCard f={r.fragrances[0]} locale={locale} />
+              </li>
+            ))}
+          </ul>
+          <p className="mt-10">
+            <Link href="/finder" className="text-realm-accent underline underline-offset-4">
+              {tFinder("cta")}
+            </Link>
+          </p>
+        </div>
       </section>
     </main>
   );
