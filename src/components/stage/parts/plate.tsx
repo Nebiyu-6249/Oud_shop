@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { PLATE_R } from "@/lib/choreography";
 import { canvasTexture, paintEngraving, yieldToMain } from "../engrave";
 import { WINDOWS, plateEngraving, windowOutline } from "../plate-design";
+import { stationHoles } from "../stations";
 import { brass, wearMap } from "./materials";
 
 export const PLATE_THICKNESS = 0.14;
@@ -14,10 +15,15 @@ export function Plate({ textureSize }: { textureSize: number }) {
   const geometry = useMemo(() => {
     const shape = new THREE.Shape();
     shape.absarc(0, 0, PLATE_R, 0, Math.PI * 2, false);
-    for (const w of WINDOWS) {
-      // drawing y is world z; the shape's y becomes -z after laying it flat
-      shape.holes.push(new THREE.Path(windowOutline(w).map(([x, y]) => new THREE.Vector2(x, -y)).reverse()));
-    }
+    // drawing y is world z; the shape's y becomes -z after laying it flat
+    const hole = (pts: [number, number][]) => {
+      const v = pts.map(([x, y]) => new THREE.Vector2(x, -y));
+      // holes must wind opposite to the outline
+      if (THREE.ShapeUtils.isClockWise(v) === false) v.reverse();
+      shape.holes.push(new THREE.Path(v));
+    };
+    for (const w of WINDOWS) hole(windowOutline(w) as [number, number][]);
+    for (const h of stationHoles()) hole(h as [number, number][]);
     const g = new THREE.ExtrudeGeometry(shape, {
       depth: PLATE_THICKNESS,
       bevelEnabled: true,

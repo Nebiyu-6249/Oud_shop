@@ -19,20 +19,21 @@ export const polarY = (a: number, r: number, y: number) => new Vector3(r * Math.
 export type StationId = "resins" | "florals" | "ember" | "woods";
 
 /** Where each realm's mechanism rises from the plate. */
-export const STATIONS: Record<StationId, { angle: number; r: number; camAngle: number }> = {
-  resins: { angle: 210, r: 5, camAngle: 20 },
-  florals: { angle: 290, r: 5, camAngle: 120 },
-  ember: { angle: 115, r: 5, camAngle: -65 },
-  woods: { angle: 30, r: 5.2, camAngle: 200 },
+export const STATIONS: Record<StationId, { angle: number; r: number; camAngle: number; camY: number; lookY: number; dist: number }> = {
+  resins: { angle: 210, r: 5, camAngle: 20, camY: 1.45, lookY: 0.95, dist: 5 },
+  florals: { angle: 290, r: 5, camAngle: 120, camY: 1.9, lookY: 0.45, dist: 5.2 },
+  ember: { angle: 115, r: 5, camAngle: -65, camY: 1.3, lookY: 0.55, dist: 4.4 },
+  woods: { angle: 30, r: 5.2, camAngle: 200, camY: 1.25, lookY: 0.45, dist: 4.6 },
 };
 
 export const stationCenter = (id: StationId) => polarY(STATIONS[id].angle, STATIONS[id].r, 0);
 
-/** The composed frame at a station: standing off 4.6 units, lens a little above the work. */
+/** The composed frame at a station: standing off a few units, lens a little above the work. */
 function stationShot(id: StationId) {
+  const st = STATIONS[id];
   const c = stationCenter(id);
-  const off = polarY(STATIONS[id].camAngle, 4.6, 1.25);
-  return { cam: c.clone().add(off), look: c.clone().add(new Vector3(0, 0.7, 0)) };
+  const off = polarY(st.camAngle, st.dist, st.camY);
+  return { cam: c.clone().add(off), look: c.clone().add(new Vector3(0, st.lookY, 0)) };
 }
 
 type Key = { label?: BeatLabel; cam: Vector3; look: Vector3 };

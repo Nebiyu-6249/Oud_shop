@@ -3,7 +3,11 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo } from "react";
 import { Environment, Lightformer } from "@react-three/drei";
-import { cameraAt, stationCenter, structureState, type StationId, PLATE_R } from "@/lib/choreography";
+import { cameraAt, PLATE_R } from "@/lib/choreography";
+import { Ember } from "./parts/stations/ember";
+import { Florals } from "./parts/stations/florals";
+import { Resins } from "./parts/stations/resins";
+import { Woods } from "./parts/stations/woods";
 import { Gearworks } from "./parts/gears";
 import { Plate } from "./parts/plate";
 import { Rete } from "./parts/rete";
@@ -40,35 +44,6 @@ function CameraRig() {
   return null;
 }
 
-const IDS: StationId[] = ["resins", "florals", "ember", "woods"];
-
-/** Step 1 placeholders: a block per station that rises with its state. */
-function Placeholders() {
-  const centers = useMemo(() => IDS.map(stationCenter), []);
-  const refs = useMemo(() => IDS.map(() => ({ current: null as THREE_Mesh | null })), []);
-  useFrame(() => {
-    const p = stageStore.getState().progress;
-    IDS.forEach((id, i) => {
-      const m = refs[i].current;
-      if (!m) return;
-      const s = structureState(id, p);
-      m.scale.y = Math.max(0.001, s);
-      m.position.y = (1.4 * s) / 2;
-    });
-  });
-  return (
-    <>
-      {centers.map((c, i) => (
-        <mesh key={IDS[i]} ref={(m) => void (refs[i].current = m)} position={[c.x, 0, c.z]}>
-          <boxGeometry args={[1, 1.4, 1]} />
-          <meshStandardMaterial color="#8a7a66" roughness={0.8} />
-        </mesh>
-      ))}
-    </>
-  );
-}
-type THREE_Mesh = import("three").Mesh;
-
 export function Scene({ familyLabels }: { familyLabels: string[] }) {
   return (
     <>
@@ -87,7 +62,10 @@ export function Scene({ familyLabels }: { familyLabels: string[] }) {
         <cylinderGeometry args={[PLATE_R + 0.02, PLATE_R + 0.02, 1.4, 160, 1, true]} />
         <meshStandardMaterial color="#b08d57" metalness={1} roughness={0.5} side={2} />
       </mesh>
-      <Placeholders />
+      <Resins />
+      <Florals />
+      <Ember />
+      <Woods />
       <CameraRig />
       <Invalidator />
     </>
