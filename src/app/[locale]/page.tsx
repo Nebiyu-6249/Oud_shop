@@ -7,7 +7,9 @@ import { getRealms } from "@/lib/catalog";
 import { paletteStyle } from "@/lib/palette";
 import { FragranceCard } from "@/components/realm/fragrance-card";
 import { RealmFrameTop } from "@/components/realm/frames";
-import { IdleAstrolabe } from "@/components/astrolabe/idle-astrolabe";
+import { AstrolabeStatic } from "@/components/astrolabe/astrolabe-static";
+import { WebglUpgrade } from "@/components/astrolabe/webgl-upgrade";
+import { buildModel } from "@/components/astrolabe/model";
 import { getFinderData } from "@/lib/finder-data";
 import { alternates } from "@/i18n/alternates";
 
@@ -19,13 +21,12 @@ export default async function HomePage() {
   const locale = await rootParams.locale();
   const ar = locale === "ar";
   const t = await getTranslations("Home");
-  const tRealm = await getTranslations("Realm");
   const tFinder = await getTranslations("Finder");
   const [realms, { labels }] = await Promise.all([getRealms(), getFinderData(locale)]);
 
   return (
     <main id="main">
-      <section className="mx-auto grid max-w-7xl items-center gap-10 px-5 pt-14 pb-20 sm:px-10 sm:pt-24 sm:pb-28 lg:grid-cols-[1.1fr_1fr]">
+      <section className="mx-auto grid max-w-7xl items-center gap-10 overflow-x-clip px-5 pt-14 pb-20 sm:px-10 sm:pt-24 sm:pb-28 lg:grid-cols-[1.1fr_1fr]">
         <div>
           <h1 className="font-display text-5xl leading-[1.05] sm:text-7xl">{t("heroTitle")}</h1>
           <p className="mt-8 max-w-2xl text-xl leading-relaxed text-realm-ink/85 sm:text-2xl">{t("heroBody")}</p>
@@ -36,13 +37,16 @@ export default async function HomePage() {
             {tFinder("cta")}
           </Link>
         </div>
+        {/* A second way into the finder for pointer users; the button above is the accessible one. */}
         <Link
           href="/finder"
-          aria-label={tFinder("cta")}
+          tabIndex={-1}
+          aria-hidden
           className="relative mx-auto block aspect-square w-full max-w-[34rem]"
         >
-          <span role="img" aria-label={tFinder("idleLabel")} className="absolute inset-0">
-            <IdleAstrolabe labels={labels} />
+          <span className="absolute inset-0 text-realm-accent">
+            <AstrolabeStatic model={buildModel(labels)} className="astrolabe-static absolute inset-0" />
+            <WebglUpgrade labels={labels} />
           </span>
         </Link>
       </section>
@@ -53,18 +57,26 @@ export default async function HomePage() {
         </h2>
         <ul>
           {realms.map((r) => (
-            <li key={r.slug} style={paletteStyle(r.palette) as CSSProperties} className="bg-realm-base text-realm-ink">
+            <li
+              key={r.slug}
+              style={paletteStyle(r.palette) as CSSProperties}
+              className="group relative bg-realm-base text-realm-ink"
+            >
               <RealmFrameTop slug={r.slug} />
-              <Link
-                href={`/realms/${r.slug}`}
-                className="group mx-auto grid max-w-6xl gap-4 px-5 py-12 sm:grid-cols-[1fr_1.4fr] sm:px-10"
-                aria-label={tRealm("enter", { realm: ar ? r.nameAr : r.nameEn })}
-              >
-                <span className="font-display text-4xl text-realm-accent group-hover:underline group-hover:underline-offset-8">
-                  {ar ? r.nameAr : r.nameEn}
-                </span>
-                <span className="text-lg leading-relaxed text-realm-ink/85">{ar ? r.storyAr : r.storyEn}</span>
-              </Link>
+              <div className="mx-auto grid max-w-6xl gap-4 px-5 py-12 sm:grid-cols-[1fr_1.4fr] sm:px-10">
+                <h3 className="font-display text-4xl text-realm-accent">
+                  {/* the link's hit area is stretched over the whole row */}
+                  <Link
+                    href={`/realms/${r.slug}`}
+                    className="after:absolute after:inset-0 group-hover:underline group-hover:underline-offset-8"
+                  >
+                    {ar ? r.nameAr : r.nameEn}
+                  </Link>
+                </h3>
+                <p data-reveal="lines" className="text-lg leading-relaxed text-realm-ink/85">
+                  {ar ? r.storyAr : r.storyEn}
+                </p>
+              </div>
             </li>
           ))}
         </ul>

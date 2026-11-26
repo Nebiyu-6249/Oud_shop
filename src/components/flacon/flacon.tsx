@@ -5,7 +5,7 @@ import type { Stroke } from "./kit";
 
 function Strokes({ strokes, weight }: { strokes: Stroke[]; weight: number }) {
   return strokes.map((s, i) => (
-    <path key={i} d={s.d} strokeWidth={s.fine ? weight * 0.45 : weight} />
+    <path key={i} d={s.d} pathLength={1} strokeWidth={s.fine ? weight * 0.45 : weight} />
   ));
 }
 
@@ -35,6 +35,7 @@ export function Flacon({
       role="img"
       aria-label={label}
       className={className}
+      data-draw
       fill="none"
       stroke="currentColor"
       strokeLinecap="round"
@@ -48,9 +49,9 @@ export function Flacon({
       <g clipPath={`url(#${clip})`}>
         <Strokes strokes={f.inside} weight={1.1} />
       </g>
-      <path d={f.body} strokeWidth={1.6} />
+      <path d={f.body} pathLength={1} strokeWidth={1.6} />
       <Strokes strokes={f.outside} weight={1.2} />
-      <path d={c.d} strokeWidth={1.1} fill="var(--realm-base)" />
+      <path d={c.d} pathLength={1} strokeWidth={1.1} fill="var(--realm-base)" />
       <g transform={`translate(${c.x - c.size / 2} ${c.y - c.size / 2}) scale(${scale})`}>
         <Strokes strokes={botanical(params.ornament)} weight={1.1 / scale / 1.6} />
       </g>

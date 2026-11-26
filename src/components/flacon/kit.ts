@@ -5,8 +5,14 @@ export type P = readonly [number, number];
 /** A stroked path; fine strokes are the hairline hatching of an engraving. */
 export type Stroke = { d: string; fine?: boolean };
 
-/** Rounds to 3 decimals: fine enough for a unit-sized drawing, compact for a 320-unit one. */
-export const r2 = (n: number) => Math.round(n * 1000) / 1000;
+/**
+ * Rounds coordinates to what the drawing can show: three decimals for small
+ * numbers (the astrolabe works in a unit disc), one decimal for large ones
+ * (botanicals and flacons use 100 and 320 unit boxes, where a tenth of a
+ * unit is a fraction of a pixel). Keeps the path data, sent twice in the
+ * page, small.
+ */
+export const r2 = (n: number) => (Math.abs(n) < 4 ? Math.round(n * 1000) / 1000 : Math.round(n * 10) / 10);
 export const pt = (p: P) => `${r2(p[0])} ${r2(p[1])}`;
 const rad = (deg: number) => (deg * Math.PI) / 180;
 

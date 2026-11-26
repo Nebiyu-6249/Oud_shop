@@ -31,6 +31,17 @@ Catalogue pages are prerendered from the database at build time. Stock on the fr
 
 `/[locale]/finder` sets three rings: family (the rete), when (the middle ring) and intensity (the plate). Scoring lives in `src/lib/finder.ts` as a pure, tested function. The instrument is described once in `src/components/astrolabe/geometry.ts` and drawn twice: as SVG (first paint, and the fallback without WebGL) and as an extruded brass scene in React Three Fiber whose engravings are painted procedurally onto canvas textures. Rings turn by drag, touch, or the keyboard sliders beside it. With reduced motion the rings and rule jump straight to their detents and the home-page instrument stays still.
 
+## Motion and performance
+
+- Smoke behind the home-page instrument is a domain-warped fbm noise shader, never video.
+- Engraved botanicals and flacons below the fold draw themselves stroke by stroke as they scroll in (GSAP ScrollTrigger); story paragraphs rise line by line (SplitText, lines only, so Arabic joins are never broken).
+- Ring motion is slow and heavy: settling eases in, then stops with a small clunk.
+- The home-page astrolabe is server-rendered SVG whose rings turn by CSS animation on the compositor, one layer per ring, so idling costs no JavaScript. The WebGL scene and GSAP load only on the visitor's first pointer, touch, key or scroll.
+- Engraved labels are HTML text over the SVG line work so the browser measures them at their true size, keeping the hero text the largest contentful paint.
+- With `prefers-reduced-motion`, ring drift, camera sway, smoke, scroll drawing and line reveals are all off; the finder's rings and rule jump straight to their detents.
+
+Local Lighthouse (mobile, simulated throttling) on `/en`: Performance 95 to 97, Accessibility 100, LCP 1.1 s on the hero paragraph, CLS 0.
+
 ## Checkout
 
 The cart lives in `localStorage` and holds only variant ids and quantities. `POST /api/checkout` reprices every line from the database, checks stock (short lines come back as per-line errors), creates a PENDING order and a Stripe Checkout session in AED, and returns its URL. Prices are VAT-inclusive; VAT is `round(total * 5 / 105)` fils.

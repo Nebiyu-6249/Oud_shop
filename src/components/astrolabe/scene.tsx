@@ -110,21 +110,119 @@ function extrude(layer: Layer, depth: number) {
   });
 }
 
-const PARTS: { id: keyof AstrolabeModel; z: number; depth: number; size: number; channel?: ChannelId }[] = [
-  { id: "mater", z: 0, depth: 0.05, size: 2048 },
-  { id: "plate", z: 0.058, depth: 0.012, size: 1024, channel: "plate" },
-  { id: "wear", z: 0.076, depth: 0.014, size: 1536, channel: "wear" },
-  { id: "rete", z: 0.096, depth: 0.016, size: 1536, channel: "rete" },
-  { id: "rule", z: 0.118, depth: 0.012, size: 1024, channel: "rule" },
+/** `detail` scales each part's texture relative to the instrument's size on screen. */
+const PARTS: { id: keyof AstrolabeModel; z: number; depth: number; detail: number; channel?: ChannelId }[] = [
+  { id: "mater", z: 0, depth: 0.05, detail: 1.25 },
+  { id: "plate", z: 0.058, depth: 0.012, detail: 0.75, channel: "plate" },
+  { id: "wear", z: 0.076, depth: 0.014, detail: 1, channel: "wear" },
+  { id: "rete", z: 0.096, depth: 0.016, detail: 1, channel: "rete" },
+  { id: "rule", z: 0.118, depth: 0.012, detail: 0.5, channel: "rule" },
 ];
+
+/** Texture edge in pixels: enough for the device pixels it covers, no more. */
+function textureSize(cssSize: number, dpr: number, detail: number) {
+  const want = cssSize * Math.min(dpr, 2) * detail;
+  return Math.min(2048, Math.max(512, 2 ** Math.ceil(Math.log2(want))));
+}
+
+const yieldToMain = () => new Promise<void>((r) => setTimeout(r, 0));
+
+// ------------------------------------------------------------ smoke
+
+const SMOKE_VERT = /* glsl */ `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}`;
+
+// Domain-warped fractional Brownian motion: value noise summed over octaves,
+// fed back into its own coordinates, drifting upward like censer smoke.
+const SMOKE_FRAG = /* glsl */ `
+precision mediump float;
+varying vec2 vUv;
+uniform float uTime;
+uniform float uSpan;
+uniform vec3 uColor;
+uniform vec3 uEmber;
+
+float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float noise(vec2 p) {
+  vec2 i = floor(p), f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
+}
+float fbm(vec2 p) {
+  float v = 0.0, a = 0.5;
+  mat2 r = mat2(0.8, 0.6, -0.6, 0.8);
+  for (int i = 0; i < 5; i++) { v += a * noise(p); p = r * p * 2.03; a *= 0.5; }
+  return v;
+}
+void main() {
+  // world position in instrument units: the disc has radius 1
+  vec2 w = (vUv - 0.5) * uSpan;
+  float half_ = uSpan * 0.5;
+  float t = uTime * 0.05;
+  vec2 p = w * vec2(1.1, 0.8);
+  vec2 q = vec2(fbm(p + vec2(0.0, -t)), fbm(p + vec2(5.2, 1.3 - t)));
+  float d = fbm(p + 3.2 * q + vec2(0.0, -t * 2.6));
+  float density = smoothstep(0.38, 0.92, d);
+  // a column rising from behind the instrument, widening as it climbs
+  float width = mix(0.45, 1.35, smoothstep(-0.8, half_, w.y));
+  float column = 1.0 - smoothstep(0.55, 1.0, abs(w.x) / width);
+  float rise = smoothstep(-0.9, 0.1, w.y) * (1.0 - smoothstep(half_ - 0.45, half_, w.y));
+  float sides = 1.0 - smoothstep(half_ - 0.4, half_, abs(w.x));
+  float a = density * column * rise * sides * 0.62;
+  vec3 col = mix(uEmber, uColor, smoothstep(-0.6, 0.6, w.y));
+  gl_FragColor = vec4(col, a);
+}`;
+
+function Smoke({ span }: { span: number }) {
+  const mat = useRef<THREE.ShaderMaterial>(null);
+  const uniforms = useMemo(
+    () => ({
+      uTime: { value: 0 },
+      uSpan: { value: span },
+      uColor: { value: new THREE.Color("#ad9d85") },
+      uEmber: { value: new THREE.Color("#8e2b1e") },
+    }),
+    [span],
+  );
+  useFrame(({ clock }) => {
+    if (mat.current) mat.current.uniforms.uTime.value = clock.getElapsedTime();
+  });
+  return (
+    <mesh position={[0, 0, -0.8]} renderOrder={-1}>
+      <planeGeometry args={[span, span]} />
+      <shaderMaterial
+        ref={mat}
+        vertexShader={SMOKE_VERT}
+        fragmentShader={SMOKE_FRAG}
+        uniforms={uniforms}
+        transparent
+        depthWrite={false}
+      />
+    </mesh>
+  );
+}
 
 // ------------------------------------------------------------ scene
 
-/** Frames the unit disc exactly, so a pointer's radius picks the right ring. */
-function Camera() {
+/**
+ * Frames the unit disc exactly, so a pointer's radius picks the right ring.
+ * With bleed the canvas extends past the instrument on every side (room for
+ * smoke) and the zoom compensates so the brass stays the same size.
+ */
+function Camera({ bleed }: { bleed: number }) {
   const size = useThree((s) => s.size);
   return (
-    <OrthographicCamera makeDefault position={[0, 0, 10]} near={0.1} far={50} zoom={Math.min(size.width, size.height) / 2} />
+    <OrthographicCamera
+      makeDefault
+      position={[0, 0, 10]}
+      near={0.1}
+      far={50}
+      zoom={Math.min(size.width, size.height) / 2 / (1 + 2 * bleed)}
+    />
   );
 }
 
@@ -135,7 +233,9 @@ function Instrument({
   tilt,
   reduced,
   onReady,
+  bleed = 0,
 }: {
+  bleed?: number;
   model: AstrolabeModel;
   mech: Mechanism;
   highlights: Highlight[];
@@ -155,7 +255,11 @@ function Instrument({
     [model],
   );
 
-  // Paint the engravings once the page fonts are ready.
+  const cssSize = useThree((s) => Math.min(s.size.width, s.size.height)) / (1 + 2 * bleed);
+  const dpr = useThree((s) => s.viewport.dpr);
+
+  // Paint the engravings once the page fonts are ready, one part at a time
+  // with a yield between, so no single task blocks the page for long.
   useEffect(() => {
     let cancelled = false;
     const fonts = readFonts();
@@ -165,16 +269,21 @@ function Instrument({
       document.fonts.load(`48px ${fonts.body}`, sample),
     ])
       .catch(() => undefined)
-      .then(() => {
-        if (cancelled) return;
+      .then(async () => {
         const out: Record<string, THREE.Texture> = {};
-        PARTS.forEach((p, i) => (out[p.id] = paintLayer(model[p.id], p.size, fonts, 7 + i * 101)));
-        for (const t of Object.values(out)) t.anisotropy = Math.min(8, gl.capabilities.getMaxAnisotropy());
-        setMaps(out);
+        for (const [i, p] of PARTS.entries()) {
+          if (cancelled) return;
+          out[p.id] = paintLayer(model[p.id], textureSize(cssSize, dpr, p.detail), fonts, 7 + i * 101);
+          out[p.id].anisotropy = Math.min(8, gl.capabilities.getMaxAnisotropy());
+          await yieldToMain();
+        }
+        if (!cancelled) setMaps(out);
       });
     return () => {
       cancelled = true;
     };
+    // Repainting on every resize would be wasteful; the first size is enough.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model, gl]);
 
   useEffect(() => () => Object.values(maps ?? {}).forEach((t) => t.dispose()), [maps]);
@@ -308,8 +417,10 @@ export function Scene(props: {
   reduced: boolean;
   onReady: () => void;
   onFail: () => void;
+  /** Extra canvas around the instrument, as a fraction of its size. */
+  bleed?: number;
 }) {
-  const { onFail } = props;
+  const { onFail, bleed = 0 } = props;
   return (
     <Boundary onFail={onFail}>
       <Canvas
@@ -322,7 +433,7 @@ export function Scene(props: {
         }}
         style={{ pointerEvents: "none" }}
       >
-        <Camera />
+        <Camera bleed={bleed} />
         <ambientLight intensity={0.25} />
         <directionalLight
           position={[-2.5, 3, 5]}
@@ -340,6 +451,7 @@ export function Scene(props: {
           <Lightformer form="rect" intensity={0.8} position={[3, -1, 3]} scale={[3, 3, 1]} color="#ffd9a8" />
           <Lightformer form="ring" intensity={0.6} position={[0, 0, 6]} scale={4} />
         </Environment>
+        {props.tilt && !props.reduced && <Smoke span={2 * (1 + 2 * bleed)} />}
         <Instrument {...props} />
       </Canvas>
     </Boundary>

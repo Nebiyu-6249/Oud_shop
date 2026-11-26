@@ -68,7 +68,7 @@ export default async function FragrancePage({ params }: PageProps<"/[locale]/fra
         </div>
 
         <section className="space-y-8">
-          <p className="text-xl leading-relaxed">{ar ? f.storyAr : f.storyEn}</p>
+          <p data-reveal="lines" className="text-xl leading-relaxed">{ar ? f.storyAr : f.storyEn}</p>
 
           <dl className="rule grid grid-cols-2 gap-x-6 gap-y-4 border-t pt-6 text-base">
             <div>

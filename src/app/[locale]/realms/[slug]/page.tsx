@@ -41,7 +41,7 @@ export default async function RealmPage({ params }: PageProps<"/[locale]/realms/
         <h1 className="font-display text-5xl leading-tight text-realm-accent sm:text-7xl">
           {ar ? realm.nameAr : realm.nameEn}
         </h1>
-        <p className="mt-8 max-w-2xl text-xl leading-relaxed sm:text-2xl">{ar ? realm.storyAr : realm.storyEn}</p>
+        <p data-reveal="lines" className="mt-8 max-w-2xl text-xl leading-relaxed sm:text-2xl">{ar ? realm.storyAr : realm.storyEn}</p>
       </header>
 
       <section aria-labelledby="perfumes" className="mx-auto max-w-6xl px-5 pb-16 sm:px-10">

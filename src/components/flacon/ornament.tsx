@@ -15,6 +15,7 @@ export function Ornament({
     <svg
       viewBox="0 0 100 100"
       className={className}
+      data-draw
       fill="none"
       stroke="currentColor"
       strokeLinecap="round"
@@ -22,7 +23,7 @@ export function Ornament({
       {...(label ? { role: "img", "aria-label": label } : { "aria-hidden": true })}
     >
       {botanical(ornamentKey).map((s, i) => (
-        <path key={i} d={s.d} strokeWidth={s.fine ? 0.4 : 0.9} />
+        <path key={i} d={s.d} pathLength={1} strokeWidth={s.fine ? 0.4 : 0.9} />
       ))}
     </svg>
   );

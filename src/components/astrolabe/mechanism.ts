@@ -114,6 +114,11 @@ export class Mechanism {
     for (const c of Object.values(this.channels)) c.step(now, dt);
   }
 
+  /** Jump channels to angles, e.g. to take over from a CSS animation. */
+  setPositions(angles: Partial<Record<ChannelId, number>>) {
+    for (const [id, v] of Object.entries(angles)) if (v !== undefined) this.channels[id as ChannelId].set(v);
+  }
+
   /** Set each channel's idle drift in degrees per second (0 to stop). */
   setDrift(speeds: Partial<Record<ChannelId, number>>) {
     for (const [id, v] of Object.entries(speeds)) this.channels[id as ChannelId].drift = v ?? 0;

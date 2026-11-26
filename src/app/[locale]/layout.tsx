@@ -8,6 +8,7 @@ import { directionOf, routing } from "@/i18n/routing";
 import { SiteHeader } from "@/components/site-header";
 import { Grade } from "@/components/realm/grade";
 import { getGradeMap } from "@/lib/catalog";
+import { MotionLayer } from "@/components/motion/motion-layer";
 import "../globals.css";
 
 const cinzel = Cinzel({ subsets: ["latin"], variable: "--font-cinzel", display: "swap" });
@@ -65,6 +66,7 @@ export default async function LocaleLayout({ children }: LayoutProps<"/[locale]"
           <Grade palettes={grade.palettes} fragranceRealm={grade.fragranceRealm}>
             <SiteHeader />
             <div className="flex-1">{children}</div>
+            <MotionLayer />
           </Grade>
         </NextIntlClientProvider>
       </body>

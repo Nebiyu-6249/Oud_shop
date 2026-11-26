@@ -103,6 +103,30 @@ body {
   outline-offset: 3px;
 }
 
+/* Idle astrolabe rings: turned by the compositor, from each ring's own start angle. */
+@keyframes astrolabe-turn {
+  from {
+    transform: rotate(var(--start));
+  }
+  to {
+    transform: rotate(calc(var(--start) + 360deg));
+  }
+}
+
+/* Once the WebGL instrument is on screen, the SVG one fades out beneath it. */
+.astrolabe-static {
+  transition: opacity 0.7s;
+}
+[data-webgl="ready"] > .astrolabe-static {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [style*="astrolabe-turn"] {
+    animation: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

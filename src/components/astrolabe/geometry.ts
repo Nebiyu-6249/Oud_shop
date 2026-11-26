@@ -62,6 +62,8 @@ export type Layer = {
   outline: P[];
   /** Inner hole, if the part is a ring. */
   hole?: P[];
+  /** When the part is round: its radii, so SVG can draw true circles. */
+  round?: { outer: number; inner?: number };
   strokes: Stroke[];
   texts: EngravedText[];
 };
@@ -190,7 +192,7 @@ export function rete(labels: string[]): Layer {
     strokes.push({ d: arc([0, 0], mid + 0.035, b - 22, b - 8), fine: true });
     strokes.push({ d: arc([0, 0], mid - 0.035, b + 8, b + 22), fine: true });
   }
-  return { outline: circlePts(R.reteOuter), hole: circlePts(R.reteInner), strokes, texts };
+  return { outline: circlePts(R.reteOuter), hole: circlePts(R.reteInner), round: { outer: R.reteOuter, inner: R.reteInner }, strokes, texts };
 }
 
 // ---------------------------------------------------------------- wear ring
@@ -233,7 +235,7 @@ export function wearRing(labels: string[], symbols: WearSymbol[]): Layer {
     texts.push(ringText(labels[i], 0.415, a, 0.05, "body"));
     strokes.push(...kuficBand(R.wearInner + 0.03, R.wearOuter - 0.035, a + 32, a + step - 32, 6));
   }
-  return { outline: circlePts(R.wearOuter), hole: circlePts(R.wearInner), strokes, texts };
+  return { outline: circlePts(R.wearOuter), hole: circlePts(R.wearInner), round: { outer: R.wearOuter, inner: R.wearInner }, strokes, texts };
 }
 
 // ---------------------------------------------------------------- plate
@@ -259,7 +261,7 @@ export function plate(labels: string[]): Layer {
     texts.push(ringText(labels[i], 0.285, a, 0.058, "display"));
     strokes.push(detentNotch(R.plate, a, 0.014));
   }
-  return { outline: circlePts(R.plate), strokes, texts };
+  return { outline: circlePts(R.plate), round: { outer: R.plate }, strokes, texts };
 }
 
 // ---------------------------------------------------------------- rule
