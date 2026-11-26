@@ -22,7 +22,7 @@ export function Post({ tiltShift }: { tiltShift: boolean }) {
   useFrame(({ camera }) => {
     if (!tilt.current) return;
     // follow the subject: put the sharp band through its point on screen
-    cameraAt(stageStore.getState().progress, pose);
+    cameraAt(stageStore.getState().progress, pose, stageStore.getState().variant);
     v.copy(pose.look).project(camera);
     const y = Math.min(0.9, Math.max(0.1, (v.y + 1) / 2));
     tilt.current.start = [0, y];

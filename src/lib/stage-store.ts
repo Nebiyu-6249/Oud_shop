@@ -4,6 +4,7 @@
 
 import { createStore } from "zustand/vanilla";
 import { useStore } from "zustand";
+import type { CameraVariant } from "./choreography";
 import type { BeatLabel } from "./sequence";
 
 export type StageMode =
@@ -25,6 +26,8 @@ export type StageState = {
   qualityPinned: boolean;
   /** ?debug&post=0 renders without the post-processing chain, for comparison. */
   postOff: boolean;
+  /** Phones and portrait screens take the compact camera path. */
+  variant: CameraVariant;
   reduced: boolean;
   debug: boolean;
   /** The runtime chunk has loaded and the first frame is on screen. */
@@ -42,6 +45,7 @@ export const stageStore = createStore<StageState>()(() => ({
   quality: 3,
   qualityPinned: false,
   postOff: false,
+  variant: "full",
   reduced: false,
   debug: false,
   ready: false,

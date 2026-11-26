@@ -10,8 +10,8 @@ import { useStage } from "@/lib/stage-store";
 import { Dust } from "./parts/dust";
 import { Lamp } from "./parts/lamp";
 import { Post } from "./post";
-import { Environment, Lightformer } from "@react-three/drei";
-import { cameraAt } from "@/lib/choreography";
+import { Environment, Lightformer, PerformanceMonitor } from "@react-three/drei";
+import { FOV, FOV_COMPACT, cameraAt } from "@/lib/choreography";
 import { Ember } from "./parts/stations/ember";
 import { Florals } from "./parts/stations/florals";
 import { Resins } from "./parts/stations/resins";
@@ -33,7 +33,14 @@ function Invalidator() {
 function CameraRig() {
   const pose = useMemo(() => cameraAt(0), []);
   useFrame(({ camera, gl, size }) => {
-    cameraAt(stageStore.getState().progress, pose);
+    const { variant } = stageStore.getState();
+    cameraAt(stageStore.getState().progress, pose, variant);
+    const fov = variant === "compact" ? FOV_COMPACT : FOV;
+    const cam = camera as THREE.PerspectiveCamera;
+    if (cam.fov !== fov) {
+      cam.fov = fov;
+      cam.updateProjectionMatrix();
+    }
     camera.position.copy(pose.pos);
     camera.lookAt(pose.look);
     if (stageStore.getState().debug) {
@@ -85,11 +92,39 @@ function AmbientLoop() {
   return null;
 }
 
+/**
+ * Steps quality down when frames run slow: tilt-shift goes first, then the
+ * dust, then shadows. Targets: 55 fps on a laptop, 30 on a phone. A quality
+ * pinned with ?debug&quality=N is left alone.
+ */
+function Governor() {
+  const compact = useStage((s) => s.variant === "compact");
+  const step = (by: -1 | 1) => {
+    const s = stageStore.getState();
+    if (s.qualityPinned) return;
+    const ceiling = s.variant === "compact" ? 2 : 3;
+    const q = Math.max(0, Math.min(ceiling, s.quality + by)) as 0 | 1 | 2 | 3;
+    if (q !== s.quality) stageStore.setState({ quality: q });
+  };
+  return (
+    <PerformanceMonitor
+      bounds={() => (compact ? [30, 50] : [55, 75])}
+      flipflops={3}
+      onDecline={() => step(-1)}
+      onIncline={() => step(1)}
+      onFallback={() => {
+        if (!stageStore.getState().qualityPinned) stageStore.setState({ quality: 0 });
+      }}
+    />
+  );
+}
+
 export function Scene({ familyLabels, palettes }: { familyLabels: string[]; palettes: Record<BeatLabel, Palette> }) {
   const quality = useStage((s) => s.quality);
   const postOff = useStage((s) => s.postOff);
   return (
     <>
+      <Governor />
       <Atmosphere palettes={palettes} />
       {/*
         What the brass reflects. Metal has no diffuse colour, so without a

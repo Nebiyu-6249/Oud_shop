@@ -70,7 +70,7 @@ export function Dust() {
 
   useFrame(({ clock, gl }) => {
     const p = stageStore.getState().progress;
-    cameraAt(p, pose);
+    cameraAt(p, pose, stageStore.getState().variant);
     lampPosition(pose.pos, pose.look, lamp);
     // stretch the unit cone so it hangs from the lamp down to the subject
     const g = points.current;

@@ -160,13 +160,17 @@ html[data-stage="ready"] .stage-poster {
   background: color-mix(in srgb, var(--realm-base) 82%, transparent);
 }
 
-/* New page content fades in while the camera travels. */
+/*
+ * After a client-side navigation, new page content fades in while the camera
+ * travels. Never on the first load: content that first paints invisible
+ * cannot be the largest contentful paint, and the hero text must be.
+ */
 @keyframes page-in {
   from {
     opacity: 0;
   }
 }
-main {
+html[data-navigated] main {
   animation: page-in 0.7s ease-out both;
 }
 

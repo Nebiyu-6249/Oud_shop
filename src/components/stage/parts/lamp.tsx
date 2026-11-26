@@ -45,7 +45,7 @@ export function Lamp({ shadows }: { shadows: boolean }) {
 
   useFrame(() => {
     const p = stageStore.getState().progress;
-    cameraAt(p, pose);
+    cameraAt(p, pose, stageStore.getState().variant);
     lampPosition(pose.pos, pose.look, at);
     const lamp = lampAt(p);
     color.set(lamp.color);

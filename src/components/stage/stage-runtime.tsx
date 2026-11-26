@@ -9,7 +9,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { beatPalettes, paletteAt } from "@/lib/grade";
 import { type Palette, paletteStyle } from "@/lib/palette";
 import { FOV } from "@/lib/choreography";
-import { createMasterTimeline, labelAt } from "@/lib/sequence";
+import { createMasterTimeline, labelAt, nearestLabel } from "@/lib/sequence";
 import { stageStore, useStage } from "@/lib/stage-store";
 import { DebugOverlay } from "./debug-overlay";
 import { attachKeys, attachSnap, buildOverlayTimeline } from "./sequence-controls";
@@ -44,9 +44,39 @@ function markActive(p: number) {
   }
 }
 
+/**
+ * Under reduced motion the home page shows only composed frames: whatever
+ * the scroll, the stage holds the nearest beat (its mechanisms already in
+ * their final position) and swaps frames through a brief dip, never a
+ * camera flight.
+ */
+let stillLabel: number | null = null;
+let stillTimer = 0;
+
+function showStill(p: number) {
+  const at = labelAt(nearestLabel(p));
+  if (stillLabel === at) return;
+  if (stillLabel === null) {
+    stillLabel = at;
+    stageStore.setState({ progress: at });
+    return;
+  }
+  stillLabel = at;
+  window.clearTimeout(stillTimer);
+  stageStore.setState({ dip: true });
+  stillTimer = window.setTimeout(() => {
+    stageStore.setState({ progress: stillLabel ?? at, dip: false });
+  }, 220);
+}
+
 /** Publishes progress to the store (for the canvas) and to CSS (for DOM overlays). */
 function publish(p: number) {
-  stageStore.setState({ progress: p });
+  const s = stageStore.getState();
+  if (s.reduced && s.mode === "scroll") showStill(p);
+  else {
+    stillLabel = null;
+    stageStore.setState({ progress: p });
+  }
   overlay?.progress(p);
   markActive(p);
   paintGrade(p);
@@ -75,7 +105,8 @@ export function StageRuntime({ familyLabels, realmPalettes }: { familyLabels: st
 
   // Smooth scroll and the master timeline, once for the life of the page.
   useEffect(() => {
-    const lenis = new Lenis({ autoRaf: false, lerp: 0.09 });
+    // smooth scrolling is itself motion: off under reduced motion
+    const lenis = new Lenis({ autoRaf: false, lerp: 0.09, smoothWheel: !stageStore.getState().reduced });
     lenisRef.current = lenis;
     const raf = (time: number) => lenis.raf(time * 1000);
     lenis.on("scroll", ScrollTrigger.update);

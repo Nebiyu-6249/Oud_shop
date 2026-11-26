@@ -31,16 +31,23 @@ Catalogue pages are prerendered from the database at build time. Stock on the fr
 
 `/[locale]/finder` sets three rings: family (the rete), when (the middle ring) and intensity (the plate). Scoring lives in `src/lib/finder.ts` as a pure, tested function. The instrument is described once in `src/components/astrolabe/geometry.ts` and drawn twice: as SVG (first paint, and the fallback without WebGL) and as an extruded brass scene in React Three Fiber whose engravings are painted procedurally onto canvas textures. Rings turn by drag, touch, or the keyboard sliders beside it. With reduced motion the rings and rule jump straight to their detents and the home-page instrument stays still.
 
-## Motion and performance
+## The title sequence
 
-- Smoke behind the home-page instrument is a domain-warped fbm noise shader, never video.
-- Engraved botanicals and flacons below the fold draw themselves stroke by stroke as they scroll in (GSAP ScrollTrigger); story paragraphs rise line by line (SplitText, lines only, so Arabic joins are never broken).
-- Ring motion is slow and heavy: settling eases in, then stops with a small clunk.
-- The home-page astrolabe is server-rendered SVG whose rings turn by CSS animation on the compositor, one layer per ring, so idling costs no JavaScript. The WebGL scene and GSAP load only on the visitor's first pointer, touch, key or scroll.
-- Engraved labels are HTML text over the SVG line work so the browser measures them at their true size, keeping the hero text the largest contentful paint.
-- With `prefers-reduced-motion`, ring drift, camera sway, smoke, scroll drawing and line reveals are all off; the finder's rings and rule jump straight to their detents.
+The home page is a title sequence on the astrolabe's own plate: seven beats (`rim`, `descent`, `resins`, `florals`, `ember`, `woods`, `ascent`) on one master GSAP timeline (`src/lib/sequence.ts`). The timeline drives a single progress value; the camera splines, every mechanism, the grade and the overlays are pure functions of it (`src/lib/choreography.ts`, `src/lib/grade.ts`, `src/lib/gears.ts`), so scrolling back reverses everything exactly.
 
-Local Lighthouse (mobile, simulated throttling) on `/en`: Performance 95 to 97, Accessibility 100, LCP 1.1 s on the hero paragraph, CLS 0.
+- One persistent `<Canvas>` lives in the locale layout and never remounts. Its runtime is a separate chunk loaded on the visitor's first interaction, after the hero text has painted.
+- Home: a 700vh section scrubbed by ScrollTrigger with Lenis on the GSAP ticker; scroll snaps gently to beats; arrow keys and Page Up/Down step between them.
+- Other routes: the timeline travels to the route's label with `tweenFromTo` (at most 1.4 s planned); realm pages park on their mechanism, product and cart pages on the Ascent.
+- Phones and portrait screens take a shorter camera path with a slightly wider lens and start without tilt-shift. `PerformanceMonitor` drops tilt-shift, then dust, then shadows. Pixel ratio is capped at 1.5.
+- Reduced motion: no camera flight; the stage holds composed stills with mechanisms in place and swaps them through a brief fade; smoke, dust, grain movement and smooth scrolling are off.
+
+### Measuring on a device
+
+Add `?debug` to any URL: the stage loads at once and an overlay shows frames drawn per second (the stage renders on demand, so 0 means nothing is moving), the page frame rate, the quality level, pixel ratio, draw calls, progress and the last route travel's planned and measured time. `?debug&quality=0..3` pins a quality level; `?debug&post=0` bypasses post-processing.
+
+Targets: 55+ fps on a mid laptop with integrated graphics, 30+ on a mid Android phone. These have not been measured: the build container has no GPU.
+
+Local Lighthouse (mobile, simulated throttling) on `/en` after the sequence: Performance 93 to 96, Accessibility 100, LCP 1.1 s on the hero paragraph, CLS 0.
 
 ## Checkout
 

@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "@/i18n/navigation";
 import { REALM_LABEL } from "@/lib/sequence";
 import { type StageMode, stageStore } from "@/lib/stage-store";
@@ -32,6 +32,16 @@ export function StageHost({ familyLabels, realmPalettes }: { familyLabels: strin
   const reduced = useReducedMotion();
   const [load, setLoad] = useState(false);
 
+  // mark the document once the visitor has navigated within the site
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) {
+      first.current = false;
+      return;
+    }
+    document.documentElement.dataset.navigated = "";
+  }, [pathname]);
+
   useEffect(() => {
     const [, section, slug] = pathname.split("/");
     let mode: StageMode = "parked";
@@ -46,6 +56,19 @@ export function StageHost({ familyLabels, realmPalettes }: { familyLabels: strin
   useEffect(() => {
     stageStore.setState({ reduced });
   }, [reduced]);
+
+  // phones and portrait screens: the compact camera path, and no tilt-shift to begin with
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px), (max-aspect-ratio: 9/10)");
+    const apply = () => {
+      const variant = mq.matches ? "compact" : "full";
+      const s = stageStore.getState();
+      stageStore.setState({ variant, ...(s.qualityPinned ? {} : { quality: variant === "compact" ? 2 : Math.max(s.quality, 2) as 2 | 3 }) });
+    };
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
 
   useEffect(() => {
     if (!webglAvailable()) return;

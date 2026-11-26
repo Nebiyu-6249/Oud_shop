@@ -112,3 +112,23 @@ describe("master timeline", () => {
     expect(tl.labels.ember).toBe(0.64);
   });
 });
+
+describe("compact camera path", () => {
+  it("is shorter than the full one through the six beats before the climb", async () => {
+    const { pathLength } = await import("./choreography");
+    expect(pathLength("compact")).toBeLessThan(pathLength("full"));
+  });
+
+  it("still holds on every label and moves continuously", async () => {
+    const { cameraAt: at } = await import("./choreography");
+    let prev = at(0, undefined, "compact").pos.clone();
+    for (let i = 1; i <= 4000; i++) {
+      const cur = at(i / 4000, undefined, "compact").pos.clone();
+      expect(cur.distanceTo(prev)).toBeLessThan(0.6);
+      prev = cur;
+    }
+    for (const b of BEATS.slice(0, -1)) {
+      expect(at(b.at, undefined, "compact").pos.distanceTo(at(b.at + HOLD * 0.9, undefined, "compact").pos)).toBeLessThan(1e-9);
+    }
+  });
+});
