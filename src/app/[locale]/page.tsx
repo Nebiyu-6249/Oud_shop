@@ -61,7 +61,7 @@ export default async function HomePage() {
           {BEATS.map(({ label }) => {
             if (label === "rim") {
               return (
-                <div key={label} data-beat={label} {...beatData(label)} className="beat absolute inset-0 flex items-center" style={beatStyle(label)}>
+                <div key={label} data-beat={label} data-active {...beatData(label)} className="beat absolute inset-0 flex items-center" style={beatStyle(label)}>
                   <div className="mx-auto w-full max-w-7xl px-5 sm:px-10">
                     <div className="max-w-2xl">
                       <h1 className="font-display text-5xl leading-[1.05] sm:text-7xl">{t("heroTitle")}</h1>

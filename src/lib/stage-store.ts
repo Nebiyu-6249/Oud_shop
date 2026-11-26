@@ -27,6 +27,8 @@ export type StageState = {
   ready: boolean;
   /** The visitor has interacted; ambient motion (smoke, dust) may run. */
   live: boolean;
+  /** Reduced motion: the stage is briefly faded out while it cuts to a new frame. */
+  dip: boolean;
 };
 
 export const stageStore = createStore<StageState>()(() => ({
@@ -38,6 +40,7 @@ export const stageStore = createStore<StageState>()(() => ({
   debug: false,
   ready: false,
   live: false,
+  dip: false,
 }));
 
 export const useStage = <T,>(selector: (s: StageState) => T) => useStore(stageStore, selector);

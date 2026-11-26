@@ -31,6 +31,8 @@ export function DebugOverlay() {
       const pageFps = browserFrames / secs;
       if (stageFps > 1) worst = Math.min(worst, stageFps);
       const s = stageStore.getState();
+      const travels = (window as unknown as { __travels?: { planned: number; took: number }[] }).__travels ?? [];
+      const travel = travels[travels.length - 1];
       setText(
         [
           `stage ${stageFps.toFixed(0)} fps (lowest while drawing ${worst === Infinity ? "-" : worst.toFixed(0)})`,
@@ -38,6 +40,7 @@ export function DebugOverlay() {
           `quality ${s.quality}  dpr ${frameStats.dpr.toFixed(2)}`,
           `calls ${frameStats.calls}  tris ${frameStats.triangles}`,
           `progress ${s.progress.toFixed(3)}  ${nearestLabel(s.progress)}  ${s.mode}${s.reduced ? "  reduced" : ""}`,
+          `last route travel ${travel ? `${travel.took.toFixed(2)} s (planned ${travel.planned.toFixed(2)})` : "-"}`,
         ].join("\n"),
       );
       browserFrames = 0;
@@ -53,7 +56,7 @@ export function DebugOverlay() {
   return (
     <pre
       data-stage-debug
-      className="pointer-events-auto fixed end-2 bottom-2 z-50 border border-brass bg-night/90 px-3 py-2 font-mono text-xs leading-5 whitespace-pre text-parchment"
+      className="pointer-events-none fixed end-2 bottom-2 z-50 border border-brass bg-night/90 px-3 py-2 font-mono text-xs leading-5 whitespace-pre text-parchment"
     >
       {text}
     </pre>

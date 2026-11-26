@@ -30,6 +30,7 @@ export function Grade({
       className="grade relative z-[1] flex min-h-dvh flex-col"
       data-realm={realm ?? "house"}
       data-home={pathname === "/" ? "" : undefined}
+      data-through={section === "finder" ? undefined : ""}
       style={palette ? (paletteStyle(palette) as CSSProperties) : undefined}
     >
       {children}

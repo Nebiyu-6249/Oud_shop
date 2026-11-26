@@ -124,8 +124,12 @@ body {
   opacity: clamp(0, min((var(--p, 0) - var(--a)) * var(--fade), (var(--b) - var(--p, 0)) * var(--fade)), 1);
   pointer-events: none;
 }
-.beat .beat-link {
+/* only the beat on screen can be clicked or tabbed to; its text stays in the DOM */
+.beat[data-active] .beat-link {
   pointer-events: auto;
+}
+.beat:not([data-active]) .beat-link {
+  visibility: hidden;
 }
 
 /* The engraved poster fades once the 3D stage has drawn its first frame. */
@@ -136,9 +140,30 @@ html[data-stage="ready"] .stage-poster {
   opacity: 0;
 }
 
-/* On the home page the layout is transparent so the fixed stage shows through. */
-.grade[data-home] {
+/*
+ * The layout is transparent wherever the stage should show through (every
+ * route but the finder, which draws its own instrument). Pages then decide:
+ * the home sequence and a realm's hero are open windows onto the stage; other
+ * pages sit on a dimmed solid backdrop over the parked instrument. No blur.
+ */
+.grade[data-through] {
   background: transparent;
+}
+.grade[data-through] main:not([data-stage-window]) {
+  background: color-mix(in srgb, var(--realm-base) 90%, transparent);
+}
+.stage-panel {
+  background: color-mix(in srgb, var(--realm-base) 82%, transparent);
+}
+
+/* New page content fades in while the camera travels. */
+@keyframes page-in {
+  from {
+    opacity: 0;
+  }
+}
+main {
+  animation: page-in 0.7s ease-out both;
 }
 
 /* Once the WebGL instrument is on screen, the SVG one fades out beneath it. */

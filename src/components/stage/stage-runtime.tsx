@@ -17,11 +17,21 @@ gsap.registerPlugin(ScrollTrigger, SplitText);
 
 /** The overlay timeline for the current home page, if any; scrubbed with the master. */
 let overlay: gsap.core.Timeline | null = null;
+/** The home page's beat overlays; the ones whose window holds progress are active. */
+let beats: HTMLElement[] = [];
+
+function markActive(p: number) {
+  for (const b of beats) {
+    const on = p >= Number(b.dataset.a) && p <= Number(b.dataset.b);
+    if (on !== b.hasAttribute("data-active")) b.toggleAttribute("data-active", on);
+  }
+}
 
 /** Publishes progress to the store (for the canvas) and to CSS (for DOM overlays). */
 function publish(p: number) {
   stageStore.setState({ progress: p });
   overlay?.progress(p);
+  markActive(p);
   document.documentElement.style.setProperty("--p", p.toFixed(5));
 }
 
@@ -35,6 +45,7 @@ export function StageRuntime({ familyLabels }: { familyLabels: string[] }) {
   const target = useStage((s) => s.target);
   const ready = useStage((s) => s.ready);
   const debug = useStage((s) => s.debug);
+  const dip = useStage((s) => s.dip);
   const tl = useRef<gsap.core.Timeline | null>(null);
   const lenisRef = useRef<Lenis | null>(null);
 
@@ -59,18 +70,58 @@ export function StageRuntime({ familyLabels }: { familyLabels: string[] }) {
     };
   }, []);
 
-  // The home page scrubs the timeline; other routes park it at their label.
+  // The home page scrubs the timeline; other routes travel to their label and park.
   useEffect(() => {
     const timeline = tl.current;
-    if (!timeline) return;
-    if (mode !== "scroll") {
-      timeline.progress(labelAt(target));
-      return;
+    if (!timeline || mode === "hidden") return;
+    const reduced = () => stageStore.getState().reduced;
+    const cleanups: (() => void)[] = [];
+
+    /** Travel along the same timeline: from where it is now to `to`, at most 1.6 s. */
+    const travel = (to: number, done?: () => void) => {
+      const from = timeline.time();
+      if (Math.abs(to - from) < 1e-4) {
+        done?.();
+        return;
+      }
+      if (reduced()) {
+        // no camera flight: dip the stage out, cut to the frame, bring it back
+        stageStore.setState({ dip: true });
+        const id = window.setTimeout(() => {
+          timeline.progress(to);
+          stageStore.setState({ dip: false });
+          done?.();
+        }, 260);
+        cleanups.push(() => window.clearTimeout(id));
+        return;
+      }
+      // the brief allows 1.6 s; plan for 1.4 so a late frame never pushes it over
+      const duration = Math.min(1.4, 0.5 + Math.abs(to - from) * 2.2);
+      const started = performance.now();
+      const tween = timeline.tweenFromTo(from, to, {
+        duration,
+        ease: "power3.inOut",
+        onComplete: () => {
+          if (stageStore.getState().debug) {
+            const w = window as unknown as { __travels?: unknown[] };
+            (w.__travels ??= []).push({ from, to, planned: duration, took: (performance.now() - started) / 1000 });
+          }
+          done?.();
+        },
+      });
+      cleanups.push(() => {
+        tween.kill();
+      });
+    };
+
+    if (mode === "parked") {
+      travel(labelAt(target));
+      return () => cleanups.forEach((c) => c());
     }
+
+    // scroll: glide to wherever the page's scroll position says, then hand over to the scrub
     let trigger: ScrollTrigger | undefined;
     let raf = 0;
-    const cleanups: (() => void)[] = [];
-    const reduced = () => stageStore.getState().reduced;
     const attach = () => {
       const el = document.getElementById("sequence");
       const lenis = lenisRef.current;
@@ -78,37 +129,49 @@ export function StageRuntime({ familyLabels }: { familyLabels: string[] }) {
         raf = requestAnimationFrame(attach);
         return;
       }
-      if (!reduced()) {
-        const o = buildOverlayTimeline(gsap, SplitText, el);
-        overlay = o.timeline;
-        cleanups.push(() => {
-          overlay = null;
-          o.revert();
-        });
-      }
-      trigger = ScrollTrigger.create({
-        trigger: el,
-        start: "top top",
-        end: "bottom bottom",
-        animation: timeline,
-        scrub: true,
+      const start = el.offsetTop;
+      const end = start + el.offsetHeight - window.innerHeight;
+      const scrolled = Math.min(1, Math.max(0, (window.scrollY - start) / Math.max(1, end - start)));
+      beats = [...el.querySelectorAll<HTMLElement>("[data-beat]")];
+      cleanups.push(() => {
+        beats = [];
       });
-      overlay?.progress(timeline.progress());
-      cleanups.push(attachSnap(lenis, trigger, reduced), attachKeys(lenis, trigger, reduced));
+      travel(scrolled, () => {
+        if (!reduced()) {
+          const o = buildOverlayTimeline(gsap, SplitText, el);
+          overlay = o.timeline;
+          cleanups.push(() => {
+            overlay = null;
+            o.revert();
+          });
+        }
+        trigger = ScrollTrigger.create({
+          trigger: el,
+          start: "top top",
+          end: "bottom bottom",
+          animation: timeline,
+          scrub: true,
+        });
+        overlay?.progress(timeline.progress());
+        cleanups.push(attachSnap(lenis, trigger, reduced), attachKeys(lenis, trigger, reduced));
+      });
     };
     attach();
     return () => {
       cancelAnimationFrame(raf);
       trigger?.kill();
-      for (const c of cleanups) c();
+      cleanups.forEach((c) => c());
     };
   }, [mode, target]);
 
   return (
+    <>
+    {/* outside the canvas layer, so it sits above page content */}
+    {debug && <DebugOverlay />}
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-700"
-      style={{ opacity: ready && mode !== "hidden" ? 1 : 0 }}
+      className={`pointer-events-none fixed inset-0 z-0 transition-opacity ${dip ? "duration-200" : "duration-700"}`}
+      style={{ opacity: ready && mode !== "hidden" && !dip ? 1 : 0 }}
     >
       <Canvas
         frameloop={mode === "hidden" ? "never" : "demand"}
@@ -119,7 +182,7 @@ export function StageRuntime({ familyLabels }: { familyLabels: string[] }) {
       >
         <Scene familyLabels={familyLabels} />
       </Canvas>
-      {debug && <DebugOverlay />}
     </div>
+    </>
   );
 }
