@@ -10,7 +10,12 @@ export async function SiteHeader() {
       <Link href="/" className="font-display text-xl tracking-[0.2em] text-realm-accent uppercase">
         {t("name")}
       </Link>
-      <LocaleSwitch label={t("switchLocale")} target={locale === "ar" ? "en" : "ar"} />
+      <nav aria-label={t("nav")} className="flex items-center gap-6">
+        <Link href="/finder" className="text-base text-realm-ink/85 underline-offset-4 hover:text-realm-accent hover:underline">
+          {t("finder")}
+        </Link>
+        <LocaleSwitch label={t("switchLocale")} target={locale === "ar" ? "en" : "ar"} />
+      </nav>
     </header>
   );
 }

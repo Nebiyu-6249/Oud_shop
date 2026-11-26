@@ -6,7 +6,7 @@
     "switchLocale": "العربية",
     "nav": "Main",
     "realms": "Realms",
-    "finder": "Find your scent"
+    "finder": "The astrolabe"
   },
   "Fragrance": {
     "realm": "Realm",
@@ -79,5 +79,35 @@
     "heroBody": "Agarwood, resin and flowers from four realms, distilled in Dubai. Nobody can smell a perfume through a screen, so turn the astrolabe instead and let it point you to three.",
     "realmsHeading": "Four realms",
     "featuredHeading": "From each realm"
+  },
+  "Finder": {
+    "title": "The astrolabe",
+    "intro": "Turn the outer ring to a family, the middle ring to the hour you will wear it, and the plate to how strong you like it. The rule swings to the three perfumes that fit best.",
+    "hint": "Drag a ring on the astrolabe, or set it here. Arrow keys turn the ring in focus.",
+    "ringFamily": "Family",
+    "ringWear": "When",
+    "ringIntensity": "Intensity",
+    "wearDay": "Day",
+    "wearAny": "Either",
+    "wearNight": "Night",
+    "turnBack": "Turn back",
+    "turnOn": "Turn on",
+    "resultsTitle": "Three for you",
+    "closestTitle": "The closest we have",
+    "closestBody": "Nothing we make matches all three settings, so these are the nearest.",
+    "rank": "Number {rank}:",
+    "from": "from {price}",
+    "family_same": "Same family",
+    "family_neighbour": "Neighbouring family",
+    "family_opposite": "Different family",
+    "wearYes": "right for the hour",
+    "wearNo": "made for the other hour",
+    "intensityExact": "exact intensity",
+    "intensityOff": "{n, plural, one {# step} other {# steps}} from your intensity",
+    "live": "The rule points to {first}, then {second} and {third}.",
+    "liveClosest": "Nothing matches exactly. The closest are {first}, {second} and {third}.",
+    "astrolabeLabel": "Brass astrolabe set to {family}, {wear}, intensity {intensity}.",
+    "idleLabel": "A brass astrolabe, turning slowly.",
+    "cta": "Turn the astrolabe"
   }
 }

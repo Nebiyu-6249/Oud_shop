@@ -5,7 +5,8 @@ export type P = readonly [number, number];
 /** A stroked path; fine strokes are the hairline hatching of an engraving. */
 export type Stroke = { d: string; fine?: boolean };
 
-export const r2 = (n: number) => Math.round(n * 100) / 100;
+/** Rounds to 3 decimals: fine enough for a unit-sized drawing, compact for a 320-unit one. */
+export const r2 = (n: number) => Math.round(n * 1000) / 1000;
 export const pt = (p: P) => `${r2(p[0])} ${r2(p[1])}`;
 const rad = (deg: number) => (deg * Math.PI) / 180;
 
@@ -63,7 +64,7 @@ export function arc(c: P, r: number, from: number, to: number) {
   return `M${pt(a)}A${r2(r)} ${r2(r)} 0 ${large} ${sweep} ${pt(b)}`;
 }
 
-function cubicAt(a: P, b: P, c: P, d: P, t: number): P {
+export function cubicAt(a: P, b: P, c: P, d: P, t: number): P {
   const m = 1 - t;
   return [
     m * m * m * a[0] + 3 * m * m * t * b[0] + 3 * m * t * t * c[0] + t * t * t * d[0],

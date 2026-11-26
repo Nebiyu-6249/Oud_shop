@@ -6,20 +6,39 @@ import { getRealms } from "@/lib/catalog";
 import { paletteStyle } from "@/lib/palette";
 import { FragranceCard } from "@/components/realm/fragrance-card";
 import { RealmFrameTop } from "@/components/realm/frames";
+import { IdleAstrolabe } from "@/components/astrolabe/idle-astrolabe";
+import { getFinderData } from "@/lib/finder-data";
 
-// The idle astrolabe joins the hero in phase 3.
 export default async function HomePage() {
   const locale = await rootParams.locale();
   const ar = locale === "ar";
   const t = await getTranslations("Home");
   const tRealm = await getTranslations("Realm");
-  const realms = await getRealms();
+  const tFinder = await getTranslations("Finder");
+  const [realms, { labels }] = await Promise.all([getRealms(), getFinderData(locale)]);
 
   return (
     <main id="main">
-      <section className="mx-auto max-w-5xl px-5 pt-16 pb-20 sm:px-10 sm:pt-28 sm:pb-32">
-        <h1 className="font-display text-5xl leading-[1.05] sm:text-7xl">{t("heroTitle")}</h1>
-        <p className="mt-8 max-w-2xl text-xl leading-relaxed text-realm-ink/85 sm:text-2xl">{t("heroBody")}</p>
+      <section className="mx-auto grid max-w-7xl items-center gap-10 px-5 pt-14 pb-20 sm:px-10 sm:pt-24 sm:pb-28 lg:grid-cols-[1.1fr_1fr]">
+        <div>
+          <h1 className="font-display text-5xl leading-[1.05] sm:text-7xl">{t("heroTitle")}</h1>
+          <p className="mt-8 max-w-2xl text-xl leading-relaxed text-realm-ink/85 sm:text-2xl">{t("heroBody")}</p>
+          <Link
+            href="/finder"
+            className="rule font-display mt-10 inline-block border px-6 py-3 text-lg tracking-[0.1em] text-realm-accent hover:border-realm-accent"
+          >
+            {tFinder("cta")}
+          </Link>
+        </div>
+        <Link
+          href="/finder"
+          aria-label={tFinder("cta")}
+          className="relative mx-auto block aspect-square w-full max-w-[34rem]"
+        >
+          <span role="img" aria-label={tFinder("idleLabel")} className="absolute inset-0">
+            <IdleAstrolabe labels={labels} />
+          </span>
+        </Link>
       </section>
 
       <section id="realms" aria-labelledby="realms-heading">

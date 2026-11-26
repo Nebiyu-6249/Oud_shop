@@ -61,6 +61,8 @@ const cardSelect = {
   nameAr: true,
   form: true,
   family: true,
+  wear: true,
+  intensity: true,
   flaconParams: true,
   variants: { select: { priceFils: true } },
 } as const;
@@ -72,6 +74,8 @@ type CardRow = {
   nameAr: string;
   form: FragranceDetail["form"];
   family: FragranceDetail["family"];
+  wear: FragranceDetail["wear"];
+  intensity: number;
   flaconParams: unknown;
   variants: { priceFils: number }[];
 };
@@ -86,6 +90,8 @@ function toCard(f: CardRow) {
     nameAr: f.nameAr,
     form: f.form,
     family: f.family,
+    wear: f.wear,
+    intensity: f.intensity,
     flaconParams: parseFlaconParams(f.flaconParams),
     fromFils: Math.min(...f.variants.map((v) => v.priceFils)),
   };
