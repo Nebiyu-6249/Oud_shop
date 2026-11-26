@@ -52,6 +52,27 @@ html[lang="ar"] {
   --font-body-face: var(--font-amiri), serif;
 }
 
+/*
+ * Arabic is joined script: letter-spacing pulls the joins apart and there are
+ * no capitals to transform. The tracked, uppercase labels used for English
+ * small caps become plain text here. Amiri also sits smaller on the line than
+ * Garamond, so it gets a little more size and leading.
+ */
+html[lang="ar"] * {
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+html[lang="ar"] body {
+  font-size: 1.2rem;
+  line-height: 1.85;
+}
+
+/* Small labels lean on tracking and capitals in English; Arabic needs size instead. */
+html[lang="ar"] .text-sm {
+  font-size: 1rem;
+}
+
 body {
   background: var(--night);
   color: var(--realm-ink);

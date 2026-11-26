@@ -9,6 +9,7 @@ import { OrderStatus } from "@/components/cart/order-status";
 import { db } from "@/lib/db";
 import { formatAED, lineTotal } from "@/lib/money";
 import { formatVariantLabel } from "@/lib/units";
+import { joinList } from "@/lib/text";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -71,7 +72,7 @@ async function OrderDetails({ id }: { id: string }) {
                 {ar ? item.variant.fragrance.nameAr : item.variant.fragrance.nameEn}
               </Link>
               <span className="block text-base text-realm-ink/70">
-                {formatVariantLabel(item.variant.label, locale)}, {item.qty} &times; {formatAED(item.unitPriceFils, locale)}
+                {joinList([formatVariantLabel(item.variant.label, locale), `${item.qty} \u00d7 ${formatAED(item.unitPriceFils, locale)}`], locale)}
               </span>
             </span>
             <span className="font-display text-lg tabular-nums">

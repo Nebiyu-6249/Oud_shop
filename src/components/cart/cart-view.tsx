@@ -8,6 +8,7 @@ import { Flacon } from "@/components/flacon/flacon";
 import type { CartCatalogEntry } from "@/lib/catalog";
 import { formatAED, lineTotal, vatFromInclusive } from "@/lib/money";
 import { formatVariantLabel } from "@/lib/units";
+import { joinList } from "@/lib/text";
 import { CART_MAX_QTY, cart, useCart } from "./store";
 
 type LineError = { code: "NOT_FOUND" } | { code: "SHORT_STOCK"; available: number } | { code: "BAD_QTY" };
@@ -115,7 +116,7 @@ export function CartView({ catalog, locale }: { catalog: CartCatalogEntry[]; loc
                       )}
                       {item && (
                         <p className="text-base text-realm-ink/70">
-                          {formatVariantLabel(item.label, locale)}, {formatAED(item.priceFils, locale)}
+                          {joinList([formatVariantLabel(item.label, locale), formatAED(item.priceFils, locale)], locale)}
                         </p>
                       )}
                       <div className="mt-3 flex items-center gap-4">

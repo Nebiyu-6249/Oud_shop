@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import * as rootParams from "next/root-params";
 import { Link } from "@/i18n/navigation";
+import { alternates } from "@/i18n/alternates";
 import { getRealm, getRealms } from "@/lib/catalog";
 import { FragranceCard } from "@/components/realm/fragrance-card";
 import { RealmFrameBottom, RealmFrameTop } from "@/components/realm/frames";
@@ -17,7 +18,11 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/realms/[
   const locale = await rootParams.locale();
   const realm = await getRealm(slug);
   if (!realm) return {};
-  return { title: locale === "ar" ? realm.nameAr : realm.nameEn };
+  return {
+    title: locale === "ar" ? realm.nameAr : realm.nameEn,
+    description: locale === "ar" ? realm.storyAr : realm.storyEn,
+    alternates: alternates(locale, `/realms/${slug}`),
+  };
 }
 
 export default async function RealmPage({ params }: PageProps<"/[locale]/realms/[slug]">) {

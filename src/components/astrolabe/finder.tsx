@@ -14,6 +14,7 @@ import {
   findFragrances,
 } from "@/lib/finder";
 import { formatAED } from "@/lib/money";
+import { joinList } from "@/lib/text";
 import { AstrolabeView } from "./astrolabe-view";
 import { DragSurface } from "./drag-surface";
 import { type RingId, markAngle } from "./geometry";
@@ -181,14 +182,17 @@ export function Finder({
                         {f.name}
                       </span>
                       <span className="block text-base text-realm-ink/70">
-                        {f.realmName}, {f.formLabel}, {t("from", { price: formatAED(f.fromFils, locale) })}
+                        {joinList([f.realmName, f.formLabel, t("from", { price: formatAED(f.fromFils, locale) })], locale)}
                       </span>
                       <span className="block text-sm text-realm-ink/60">
-                        {t(`family_${p.family}`)}
-                        {", "}
-                        {p.wearMatch ? t("wearYes") : t("wearNo")}
-                        {", "}
-                        {p.intensityDistance === 0 ? t("intensityExact") : t("intensityOff", { n: p.intensityDistance })}
+                        {joinList(
+                          [
+                            t(`family_${p.family}`),
+                            p.wearMatch ? t("wearYes") : t("wearNo"),
+                            p.intensityDistance === 0 ? t("intensityExact") : t("intensityOff", { n: p.intensityDistance }),
+                          ],
+                          locale,
+                        )}
                       </span>
                     </span>
                   </Link>

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { CSSProperties } from "react";
 import { getTranslations } from "next-intl/server";
 import * as rootParams from "next/root-params";
@@ -8,6 +9,11 @@ import { FragranceCard } from "@/components/realm/fragrance-card";
 import { RealmFrameTop } from "@/components/realm/frames";
 import { IdleAstrolabe } from "@/components/astrolabe/idle-astrolabe";
 import { getFinderData } from "@/lib/finder-data";
+import { alternates } from "@/i18n/alternates";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return { alternates: alternates(await rootParams.locale()) };
+}
 
 export default async function HomePage() {
   const locale = await rootParams.locale();

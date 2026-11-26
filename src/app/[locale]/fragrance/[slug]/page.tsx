@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import * as rootParams from "next/root-params";
 import { Suspense } from "react";
 import { Link } from "@/i18n/navigation";
+import { alternates } from "@/i18n/alternates";
 import { getFragrance, getFragranceSlugs } from "@/lib/catalog";
 import { Flacon } from "@/components/flacon/flacon";
 import { NotesDisplay } from "@/components/fragrance/notes-display";
@@ -22,7 +23,11 @@ export async function generateMetadata({
   const locale = await rootParams.locale();
   const f = await getFragrance(slug);
   if (!f) return {};
-  return { title: locale === "ar" ? f.nameAr : f.nameEn };
+  return {
+    title: locale === "ar" ? f.nameAr : f.nameEn,
+    description: locale === "ar" ? f.storyAr : f.storyEn,
+    alternates: alternates(locale, `/fragrance/${slug}`),
+  };
 }
 
 export default async function FragrancePage({ params }: PageProps<"/[locale]/fragrance/[slug]">) {
